@@ -607,7 +607,23 @@ window.carouselGoto = carouselGoto; window.carouselNext = carouselNext; window.c
     } else {
       var cId = 'c-'+cc++;
       var imgs = (sec.images||[]).filter(function(i){ return i&&i.url; });
-      var slides = imgs.map(function(img)function renderConfig(cfg) {
+      var slides = imgs.map(function(img){ return '<div class="carousel-slide"><img src="'+img.url+'" alt="'+(img.title||'')+'" loading="lazy">'+(img.title?'<div class="slide-caption-top">'+img.title+'</div>':'')+(img.desc?'<div class="slide-caption-bottom">'+img.desc+'</div>':'')+'</div>'; }).join('');
+      var dots = imgs.map(function(_,i){ return '<button class="carousel-dot'+(i===0?' active':'')+'" onclick="carouselGoto(\''+cId+'\','+i+')"></button>'; }).join('');
+      html += '<section class="slider-section"><div class="container"><div class="section-title-wrapper"><span class="section-badge">'+(sec.subtitle||'لقطات شاشة 📱')+'</span><h2 class="section-title">'+rawTitle+'</h2></div>'+(sec.desc?'<p class="slider-desc-top">'+sec.desc+'</p>':'')+'<div class="carousel-outer"><button class="carousel-btn carousel-btn-prev" onclick="carouselPrev(\''+cId+'\')">&#8250;</button><button class="carousel-btn carousel-btn-next" onclick="carouselNext(\''+cId+'\')">&#8249;</button><div class="carousel-track-wrap"><div class="carousel-track" id="'+cId+'-track">'+(slides||'<div class="carousel-slide" style="background:#111;min-height:250px;display:flex;align-items:center;justify-content:center;color:#aaa">أضف اسكرينات من لوحة التحكم</div>')+'</div></div><div class="carousel-dots" id="'+cId+'-dots">'+dots+'</div></div>'+(sec.bottomDesc?'<div class="slider-bottom-desc">'+sec.bottomDesc+'</div>':'')+'</div></section>';
+      setTimeout(function(){ initCarousel(cId, imgs.length); }, 300);
+    }
+  });
+  if (html) container.innerHTML = html;
+})();
+
+/* ── SUPABASE + RENDER ── */
+var SB = null;
+try { if (window.supabase) SB = window.supabase.createClient('https://kfuwvgsglmqothjubvou.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdXd2Z3NnbG1xb3RoanVidm91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MDYzNTUsImV4cCI6MjA5ODA4MjM1NX0.mn3ezgwYMoKFlmG8kkErcZ8tNATpQr7lKeTf6R8Zg0A'); } catch(e) {}
+
+function lsGet(k,def){ try{var v=localStorage.getItem(k);return v!==null?v:def;}catch(e){return def;} }
+function lsGetJSON(k,def){ try{var v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;} }
+
+function renderConfig(cfg) {
   if (!cfg) return;
   
   // Find custom config sections inside the global `sections` JSONB column
