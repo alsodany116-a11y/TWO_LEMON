@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رسائل الحب — هدية رومانسية مبتكرة لمن تحب</title>
+  <meta name="description" content="موقع رومانسي سري لحفظ ذكرياتكم، رسائلكم، وصوركم في مكان آمن للأبد. هدية مبتكرة لشريك حياتك.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #8B1A4A; --secondary: #C4547A; --gold: #DAA520;
+      --dark: #1A0A12; --dark2: #0D0608; --dark3: #2D1525;
+      --cream: #FDF6F0; --cream2: #F9EFE8;
+      --white: #ffffff; --muted: #6B3D56; --text: #1A0A12;
+      --font-body: 'Tajawal', sans-serif; --font-title: 'Amiri', serif;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      --shadow: 0 10px 35px rgba(0,0,0,0.3);
+      --radius: 16px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--dark); color: var(--white); font-family: var(--font-body); overflow-x: hidden; line-height: 1.6; }
+    h1,h2,h3,.brand-logo { font-family: var(--font-title); font-weight: 700; }
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    section { padding: 80px 0; }
+    a { text-decoration: none; }
+
+    /* ── NAVBAR ── */
+    .navbar { position: sticky; top: 0; z-index: 100; background: rgba(26,10,18,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(139,26,74,0.15); padding: 16px 0; }
+    .nav-container { display: flex; justify-content: space-between; align-items: center; }
+    .brand-logo { font-size: 1.5rem; color: var(--white); }
+    .brand-logo span { color: var(--secondary); }
+
+    /* ── BUTTONS ── */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 28px; border-radius: 50px; font-family: var(--font-body); font-size: 1rem; font-weight: 700; border: none; cursor: pointer; transition: var(--transition); text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; box-shadow: 0 4px 20px rgba(139,26,74,0.35); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(139,26,74,0.5); }
+    .btn-secondary { background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.15); color: var(--white); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+    /* ── BADGE ── */
+    .section-badge { display: inline-block; padding: 6px 18px; border-radius: 50px; background: rgba(139,26,74,0.1); border: 1px solid rgba(139,26,74,0.25); color: var(--secondary); font-size: .85rem; font-weight: 700; margin-bottom: 16px; }
+    .section-title-wrapper { text-align: center; margin-bottom: 50px; }
+    .section-title { font-size: 2.8rem; line-height: 1.2; margin-bottom: 14px; }
+    .section-subtitle { font-size: 1.05rem; color: rgba(255,255,255,.65); max-width: 640px; margin: 0 auto; }
+    .text-highlight { background: linear-gradient(135deg, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    /* ── HERO ── */
+    .hero { min-height: 100vh; display: flex; align-items: center; position: relative; background: radial-gradient(ellipse at 70% 50%, rgba(139,26,74,0.18) 0%, transparent 70%), var(--dark); overflow: hidden; padding: 100px 0 60px; }
+    .heart-emitter { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+    .heart-particle { position: absolute; bottom: -20px; animation: floatHeart 12s linear infinite; opacity: 0; }
+    .heart-particle::before { content: '❤️'; font-size: 14px; }
+    @keyframes floatHeart { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.3; } 100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; } }
+    .hero-container { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1; }
+    .hero-tag { display: inline-block; background: rgba(218,165,32,.1); border: 1px solid rgba(218,165,32,.3); color: var(--gold); padding: 7px 18px; border-radius: 50px; font-size: .9rem; font-weight: 700; margin-bottom: 22px; }
+    .hero-title { font-size: 3.6rem; line-height: 1.15; margin-bottom: 20px; }
+    .hero-desc { font-size: 1.1rem; color: rgba(255,255,255,.75); margin-bottom: 28px; max-width: 520px; line-height: 1.8; }
+    .hero-buttons { display: flex; gap: 14px; flex-wrap: wrap; }
+    .price-badge { display: inline-block; background: rgba(218,165,32,.12); border: 1.5px solid rgba(218,165,32,.4); color: var(--gold); font-weight: 900; font-size: 1.1rem; padding: 8px 20px; border-radius: 50px; margin-bottom: 24px; }
+
+    /* ── ENVELOPE ── */
+    .envelope-wrapper { display: flex; justify-content: center; align-items: center; }
+    .envelope { width: 260px; height: 190px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 14px; position: relative; box-shadow: 0 20px 60px rgba(139,26,74,0.5); animation: floatEnv 4s ease-in-out infinite; cursor: pointer; }
+    @keyframes floatEnv { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-15px) rotate(2deg)} }
+    .envelope-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 60%; background: rgba(255,255,255,.06); border-radius: 0 0 14px 14px; }
+    .wax-seal { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 64px; height: 64px; background: linear-gradient(135deg,var(--gold),#b8860b); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+    .wax-seal::after { content: '💌'; }
+
+    /* ── ALERT BANNER ── */
+    .alert-banner { background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary)); background-size: 200% 100%; animation: shimmer 3s ease infinite; padding: 12px; text-align: center; font-weight: 700; font-size: .95rem; color: #fff; }
+    @keyframes shimmer { 0%,100%{background-position:0%} 50%{background-position:100%} }
+
+    /* ── STORY ── */
+    .story-section { background: var(--dark); border-bottom: 1px solid rgba(139,26,74,.15); }
+
+    /* ── FEATURES ── */
+    .features { background: linear-gradient(180deg, var(--dark3) 0%, var(--dark) 100%); }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 24px; }
+    .feature-card { background: rgba(255,255,255,.03); border: 1px solid rgba(139,26,74,.12); border-radius: var(--radius); padding: 30px; transition: var(--transition); }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(139,26,74,.3); }
+    .feature-icon-wrapper { width: 54px; height: 54px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 16px; }
+    .feature-card h3 { font-size: 1.15rem; margin-bottom: 8px; font-family: var(--font-body); font-weight: 700; }
+    .feature-card p { font-size: .9rem; color: rgba(255,255,255,.6); line-height: 1.6; }
+
+    /* ── REAL PHOTOS ── */
+    .real-photos-section { background: var(--cream); padding: 90px 0; }
+    .real-photos-section .section-title { color: var(--text); font-size: 2.8rem; }
+    .real-photos-section .section-badge { background: rgba(139,26,74,.08); color: var(--primary); }
+    .real-photos-marquee-wrapper { overflow: hidden; width: 100%; direction: ltr; padding: 15px 0; position: relative; }
+    .real-photos-grid { display: flex; gap: 24px; width: max-content; animation: marqueeReal 35s linear infinite; }
+    .real-photos-grid:hover { animation-play-state: paused; }
+    .real-photo-item { border-radius: 18px; overflow: hidden; box-shadow: 0 10px 30px rgba(139,26,74,0.15); transition: transform .3s, box-shadow .3s; aspect-ratio: 9/16; background: #000; width: 220px; height: 390px; flex-shrink: 0; }
+    .real-photo-item:hover { transform: translateY(-6px); box-shadow: 0 18px 45px rgba(139,26,74,0.25); }
+    .real-photo-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    @keyframes marqueeReal {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+
+    /* ── GALLERY (images-section) ── */
+    .gallery-section { background: var(--cream2); padding: 90px 0; }
+    .gallery-section .section-title { color: var(--text); }
+    .gallery-section .section-badge { color: var(--primary); }
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(300px,1fr)); gap: 28px; }
+    .gallery-card { background: #fff; border-radius: 18px; overflow: hidden; box-shadow: 0 4px 24px rgba(139,26,74,.07); transition: transform .3s,box-shadow .3s; }
+    .gallery-card:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(139,26,74,.13); }
+    .gallery-card img { width: 100%; height: 260px; object-fit: cover; display: block; }
+    .gallery-card-body { padding: 20px; }
+    .gallery-card-title { font-size: 1.1rem; font-weight: 700; color: var(--text); font-family: var(--font-title); margin-bottom: 6px; }
+    .gallery-card-desc { font-size: .9rem; color: var(--muted); line-height: 1.5; }
+    .gallery-bottom-desc { margin-top: 40px; text-align: center; font-size: 1.05rem; color: var(--muted); max-width: 720px; margin-inline: auto; line-height: 1.8; }
+
+    /* ── SLIDER (screenshots) ── */
+    .slider-section { background: linear-gradient(160deg, var(--dark) 0%, var(--dark3) 60%, var(--dark) 100%); padding: 90px 0; overflow: hidden; }
+    .slider-section .section-title { color: #fff; }
+    .slider-section .section-badge { background: rgba(196,84,122,.15); border-color: rgba(196,84,122,.4); color: var(--secondary); }
+    .slider-desc-top { text-align: center; font-size: 1.05rem; color: rgba(255,255,255,.65); max-width: 650px; margin: -20px auto 40px; line-height: 1.7; }
+    .carousel-outer { position: relative; max-width: 900px; margin: 0 auto; }
+    .carousel-track-wrap { overflow: hidden; border-radius: 20px; }
+    .carousel-track { display: flex; transition: transform .55s cubic-bezier(.4,0,.2,1); }
+    .carousel-slide { min-width: 100%; position: relative; }
+    .carousel-slide img { width: 100%; max-height: 520px; object-fit: contain; background: var(--dark2); border-radius: 20px; display: block; }
+    .slide-caption-top { position: absolute; top: 0; left: 0; right: 0; padding: 18px 24px; background: linear-gradient(180deg,rgba(0,0,0,.65) 0%,transparent 100%); color: #fff; font-size: 1rem; font-weight: 700; border-radius: 20px 20px 0 0; text-align: center; }
+    .slide-caption-bottom { position: absolute; bottom: 0; left: 0; right: 0; padding: 18px 24px; background: linear-gradient(0deg,rgba(0,0,0,.65) 0%,transparent 100%); color: rgba(255,255,255,.85); font-size: .9rem; border-radius: 0 0 20px 20px; text-align: center; }
+    .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(139,26,74,.8); border: none; color: #fff; width: 44px; height: 44px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; z-index: 10; transition: background .2s; display: flex; align-items: center; justify-content: center; }
+    .carousel-btn:hover { background: var(--primary); }
+    .carousel-btn-prev { right: calc(100% + 12px); }
+    .carousel-btn-next { left: calc(100% + 12px); }
+    .carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 22px; }
+    .carousel-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(196,84,122,.35); border: none; cursor: pointer; transition: all .3s; padding: 0; }
+    .carousel-dot.active { background: var(--secondary); transform: scale(1.4); }
+    .slider-bottom-desc { text-align: center; font-size: 1.05rem; color: rgba(255,255,255,.6); max-width: 650px; margin: 30px auto 0; line-height: 1.8; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials { background: var(--dark); }
+    .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(300px,1fr)); gap: 24px; }
+    .testimonial-card { background: rgba(255,255,255,.03); border: 1.5px solid rgba(139,26,74,.12); border-radius: var(--radius); padding: 30px; }
+    .stars { color: var(--gold); font-size: 1.1rem; margin-bottom: 14px; }
+    .testimonial-text { font-size: 1rem; color: rgba(255,255,255,.8); line-height: 1.7; margin-bottom: 18px; font-style: italic; }
+    .testimonial-name { font-weight: 700; color: var(--secondary); font-size: .95rem; }
+
+    /* ── STEPS ── */
+    .steps { background: linear-gradient(180deg, var(--dark3) 0%, var(--dark) 100%); }
+    .steps-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 24px; }
+    .step-card { background: rgba(255,255,255,.03); border: 1px solid rgba(139,26,74,.12); border-radius: var(--radius); padding: 30px; text-align: center; }
+    .step-number { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg,var(--primary),var(--secondary)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 900; margin: 0 auto 16px; }
+    .step-card h3 { font-size: 1.1rem; margin-bottom: 10px; font-family: var(--font-body); font-weight: 700; }
+    .step-card p { font-size: .9rem; color: rgba(255,255,255,.6); line-height: 1.6; }
+
+    /* ── FAQ ACCORDION ── */
+    .faq-section { background: var(--cream); padding: 90px 0; }
+    .faq-section .section-title { color: var(--text); }
+    .faq-section .section-badge { color: var(--primary); background: rgba(139,26,74,.08); }
+    .faq-section .section-subtitle { color: var(--muted); }
+    .faq-list { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+    .faq-item { background: #fff; border-radius: 14px; box-shadow: 0 2px 14px rgba(139,26,74,.07); overflow: hidden; border: 1px solid rgba(139,26,74,.08); }
+    .faq-question { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; cursor: pointer; font-weight: 700; font-size: 1rem; color: var(--text); gap: 12px; user-select: none; }
+    .faq-question:hover { background: rgba(139,26,74,.03); }
+    .faq-arrow { flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; background: rgba(139,26,74,.08); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.1rem; transition: transform .3s; }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-answer { max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .3s; }
+    .faq-item.open .faq-answer { max-height: 300px; }
+    .faq-answer-inner { padding: 0 24px 20px; font-size: .95rem; color: var(--muted); line-height: 1.7; border-top: 1px solid rgba(139,26,74,.07); padding-top: 16px; }
+
+    /* ── COUNTDOWN CTA ── */
+    .countdown-cta { background: linear-gradient(135deg, var(--primary) 0%, #5c0e2e 100%); padding: 70px 0; text-align: center; }
+    .countdown-title { font-size: 2.4rem; color: #fff; margin-bottom: 12px; }
+    .countdown-sub { font-size: 1.1rem; color: rgba(255,255,255,.8); margin-bottom: 36px; }
+    .countdown-timer { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 36px; }
+    .timer-unit { background: rgba(255,255,255,.12); border-radius: 14px; padding: 16px 24px; min-width: 90px; }
+    .timer-num { font-size: 2.8rem; font-weight: 900; color: #fff; line-height: 1; display: block; font-family: var(--font-body); }
+    .timer-label { font-size: .8rem; color: rgba(255,255,255,.65); margin-top: 4px; display: block; }
+    .timer-sep { font-size: 2.5rem; font-weight: 900; color: rgba(255,255,255,.4); align-self: flex-start; padding-top: 8px; }
+    .countdown-urgent { display: inline-block; background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: #fff; padding: 8px 20px; border-radius: 50px; font-size: .9rem; font-weight: 700; margin-bottom: 28px; }
+
+    /* ── ORDER FORM ── */
+    .cta { background: var(--cream); padding: 90px 0; }
+    .cta-wrapper { max-width: 640px; margin: 0 auto; text-align: center; }
+    .cta-title { font-size: 2.4rem; color: var(--text); margin-bottom: 12px; }
+    .cta-subtitle { font-size: 1rem; color: var(--muted); margin-bottom: 30px; }
+    .pricing-container { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 32px; }
+    .old-price { font-size: 1.3rem; color: #aaa; text-decoration: line-through; }
+    .new-price { font-size: 2rem; font-weight: 900; color: var(--primary); }
+    .order-form { background: #fff; border-radius: 24px; padding: 36px; box-shadow: 0 8px 40px rgba(139,26,74,.1); text-align: right; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-weight: 700; font-size: .9rem; color: var(--primary); margin-bottom: 8px; }
+    .input-field { width: 100%; padding: 13px 16px; background: #FFFBF7; border: 1.5px solid rgba(139,26,74,.15); border-radius: 12px; font-family: var(--font-body); font-size: .95rem; color: var(--text); outline: none; transition: border .2s; }
+    .input-field:focus { border-color: var(--primary); }
+    .radio-group { display: flex; gap: 20px; }
+    .radio-label { display: flex; align-items: center; gap: 8px; font-size: .95rem; cursor: pointer; font-weight: 600; }
+    .radio-label input { accent-color: var(--primary); width: 18px; height: 18px; }
+    .submit-btn { width: 100%; padding: 16px; font-size: 1.1rem; border-radius: 14px; margin-top: 8px; }
+
+    /* ── THANK YOU PAGE ── */
+    #thankyou-page { display: none; position: fixed; inset: 0; z-index: 999; background: linear-gradient(135deg, var(--dark), var(--dark3)); flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+    #thankyou-page.show { display: flex; }
+    .ty-icon { font-size: 5rem; margin-bottom: 24px; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+    .ty-title { font-size: 2.6rem; color: #fff; margin-bottom: 14px; }
+    .ty-sub { font-size: 1.1rem; color: rgba(255,255,255,.75); max-width: 480px; line-height: 1.8; margin-bottom: 36px; }
+    .ty-steps { display: flex; flex-direction: column; gap: 12px; max-width: 420px; margin-bottom: 36px; }
+    .ty-step { background: rgba(255,255,255,.06); border: 1px solid rgba(196,84,122,.2); border-radius: 14px; padding: 14px 20px; display: flex; align-items: center; gap: 14px; text-align: right; }
+    .ty-step-num { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg,var(--primary),var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 900; flex-shrink: 0; }
+    .ty-step p { font-size: .95rem; color: rgba(255,255,255,.8); }
+
+    /* ── FOOTER ── */
+    .footer { background: var(--dark2); border-top: 1px solid rgba(139,26,74,.15); padding: 28px 0; text-align: center; }
+    .footer p { color: rgba(255,255,255,.4); font-size: .88rem; }
+    .footer a { color: var(--secondary); }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:768px) {
+      .hero-container { grid-template-columns: 1fr; text-align: center; }
+      .hero-title { font-size: 2.4rem; }
+      .hero-buttons { justify-content: center; }
+      .envelope-wrapper { margin-top: 20px; }
+      .section-title { font-size: 2rem; }
+      .countdown-timer { gap: 8px; }
+      .timer-unit { min-width: 70px; padding: 12px 14px; }
+      .timer-num { font-size: 2rem; }
+      .carousel-btn-prev { right: -4px; }
+      .carousel-btn-next { left: -4px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- THANK YOU PAGE -->
+<div id="thankyou-page">
+  <div class="ty-icon">💌</div>
+  <h2 class="ty-title">تم استلام طلبك! 🎉</h2>
+  <p class="ty-sub">شكراً ليك! فريقنا هيتواصل معاك على الواتساب في أقرب وقت عشان نبدأ نجهز هديتك الرومانسية 💕</p>
+  <div class="ty-steps">
+    <div class="ty-step"><div class="ty-step-num">١</div><p>هنتواصل معاك على الواتساب خلال ساعات قليلة</p></div>
+    <div class="ty-step"><div class="ty-step-num">٢</div><p>هتبعتلنا الصور والرسائل والتفاصيل اللي عايزها</p></div>
+    <div class="ty-step"><div class="ty-step-num">٣</div><p>في أقل من 24 ساعة موقعك هيكون جاهز! 🚀</p></div>
+  </div>
+  <button class="btn btn-primary" onclick="document.getElementById('thankyou-page').classList.remove('show')">العودة للصفحة الرئيسية</button>
+</div>
+
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="container nav-container">
+    <a href="#" class="brand-logo">رسائل<span>الحب</span></a>
+    <a href="#order-section" class="btn btn-primary" id="nav-action-btn">احجز الآن — 190 جنيه</a>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="heart-emitter" id="heart-emitter"></div>
+  <div class="container hero-container">
+    <div style="position:relative;z-index:10">
+      <span class="hero-tag" id="hero-tag-badge">🎁 هدية رومانسية غير متوقعة لشريك حياتك</span>
+      <h1 class="hero-title" id="hero-main-title">هدية <span class="text-highlight">لا تُنسى</span> لمن تحب</h1>
+      <p class="hero-desc" id="hero-description">موقع ويب رومانسي سري محمي بكلمة سر خاصة بكما فقط، يحتوي على رسائل عاطفية، معرض صور، مشغل أغاني، وعداد لحساب الأيام.</p>
+      <span class="price-badge" id="hero-price-badge">190 جنيه فقط</span>
+      <div class="hero-buttons">
+        <a href="#order-section" class="btn btn-primary">احجز هديتك دلوقتي ❤️</a>
+      </div>
+    </div>
+    <div class="envelope-wrapper">
+      <div class="envelope"><div class="envelope-bottom"></div><div class="wax-seal"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ALERT BANNER -->
+<div class="alert-banner" id="promo-banner-text">⏰ عرض محدود — أول 50 طلب بسعر 190 جنيه بس</div>
+
+<!-- STORY -->
+<section class="story-section">
+  <div class="container">
+    <div class="section-title-wrapper" style="margin-bottom:25px">
+      <span class="section-badge" style="background:rgba(218,165,32,.1);border-color:rgba(218,165,32,.3);color:var(--gold)">⭐ القصة</span>
+      <h2 class="section-title" style="font-size:2.8rem;margin-top:15px">كل حب عنده قصة تستاهل تتحفظ</h2>
+    </div>
+    <div style="max-width:800px;margin:0 auto;text-align:center">
+      <p style="font-size:1.25rem;color:rgba(255,255,255,.85);line-height:1.8;font-weight:300">كتير منا عنده لحظات مع شريك حياته ما حدش تصور إنها هتتنسى — بس الوقت بيمشي والتفاصيل بتبهت. ذكرياتنا جاء عشان يخلي كل لحظة حلوة محفوظة زي أول ما حصلت.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features-section">
+  <div class="container">
+    <div class="section-title-wrapper">
+      <span class="section-badge">مميزاتنا</span>
+      <h2 class="section-title">ليه <span style="color:var(--secondary)">ذكرياتنا</span> مختلف؟</h2>
+      <p class="section-subtitle">مش مجرد موقع — ده بيت ذكرياتكم الرقمي</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon-wrapper" style="background:rgba(218,165,32,.1);color:var(--gold)">🔒</div><h3>خصوصية تامة</h3><p>باسورد خاص بيكم — مش أي حد يقدر يشوف ذكرياتكم</p></div>
+      <div class="feature-card"><div class="feature-icon-wrapper" style="background:rgba(196,84,122,.1);color:var(--secondary)">💌</div><h3>رسائل وصور</h3><p>احفظ الرسائل والصور والمقاطع في مكان واحد منظم</p></div>
+      <div class="feature-card"><div class="feature-icon-wrapper" style="background:rgba(139,26,74,.15);color:var(--primary)">🎁</div><h3>هدية رومانسية</h3><p>فاجئ شريك حياتك في المناسبات والأعياد</p></div>
+      <div class="feature-card"><div class="feature-icon-wrapper" style="background:rgba(255,255,255,.05);color:#fff">☁️</div><h3>محفوظة للأبد</h3><p>سيرفر آمن — بياناتك مش هتضيع أبداً</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- DYNAMIC SECTIONS (gallery + screenshots from admin) -->
+<div id="dynamic-sections-container"></div>
+
+<!-- REAL PHOTOS SECTION -->
+<section class="real-photos-section" id="real-photos-section" style="display:none; background: var(--cream);">
+  <div class="container" style="max-width: 1000px;">
+    <div class="section-title-wrapper" style="margin-bottom: 30px;">
+      <span class="section-badge" id="real-photos-badge">📸 من عملائنا</span>
+      <h2 class="section-title" id="real-photos-title" style="color: var(--text);">صور <span class="text-highlight">واقعية</span> من مواقع عملائنا</h2>
+    </div>
+    
+    <!-- Top Text Box (مستطيل فوق الصور) -->
+    <div id="real-photos-top-box" style="background: #fff; border-radius: 14px; padding: 20px 24px; box-shadow: 0 4px 20px rgba(139,26,74,0.05); color: var(--text); font-size: 1.1rem; text-align: center; margin-bottom: 35px; border-right: 4px solid var(--primary); font-weight: 500;">
+      هنا كلام فوق الصور الواقعية
+    </div>
+
+    <!-- Photos Grid (Endless Marquee loop) -->
+    <div class="real-photos-marquee-wrapper">
+      <div class="real-photos-grid" id="real-photos-grid"></div>
+    </div>
+
+    <!-- Bottom Text Box (مستطيل تحت الصور) -->
+    <div id="real-photos-bottom-box" style="background: #fff; border-radius: 14px; padding: 20px 24px; box-shadow: 0 4px 20px rgba(139,26,74,0.05); color: var(--text); font-size: 1.1rem; text-align: center; margin-top: 35px; border-right: 4px solid var(--secondary); font-weight: 500;">
+      هنا كلام تحت الصور الواقعية
+    </div>
+  </div>
+</section>
+
+<!-- SITE DETAILS SECTION (تفاصيل الموقع) -->
+<section class="details-section" id="details-section" style="display:none; background: var(--cream2); padding: 90px 0;">
+  <div class="container" style="max-width: 800px;">
+    <div class="section-title-wrapper">
+      <span class="section-badge" id="details-badge">📝 تفاصيل الموقع</span>
+      <h2 class="section-title" id="details-title" style="color: var(--text);">مميزات وخصائص الموقع بالتفصيل</h2>
+    </div>
+    <div class="details-card" id="details-text" style="background: #fff; border-radius: 20px; padding: 35px; box-shadow: 0 8px 30px rgba(139,26,74,0.06); color: var(--text); font-size: 1.15rem; line-height: 1.8; text-align: right; white-space: pre-wrap; font-weight: 400; border-top: 5px solid var(--primary);">
+      كلام تفاصيل الموقع هنا...
+    </div>
+  </div>
+</section>
+
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-title-wrapper">
+      <span class="section-badge">آراء المشترين</span>
+      <h2 class="section-title">حكايات نجاح من أصحاب الهدايا</h2>
+    </div>
+    <div class="testimonials-grid" id="testimonials-container"></div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section class="steps">
+  <div class="container">
+    <div class="section-title-wrapper">
+      <span class="section-badge">خطوات بسيطة</span>
+      <h2 class="section-title" id="steps-title">ازاي بنعمل موقعك؟</h2>
+    </div>
+    <div class="steps-grid" id="steps-grid">
+      <div class="step-card"><div class="step-number">١</div><h3 id="step1-title">املأ بيانات الحجز</h3><p id="step1-desc">ادخل اسمك ورقم هاتفك في نموذج الطلب بالأسفل.</p></div>
+      <div class="step-card"><div class="step-number">٢</div><h3 id="step2-title">هنتواصل معاك</h3><p id="step2-desc">خلال ساعات هنتواصل معاك على الواتساب لنأخذ منك الصور والرسالة والاسم السري.</p></div>
+      <div class="step-card"><div class="step-number">٣</div><h3 id="step3-title">استلم موقعك</h3><p id="step3-desc">هنجهز موقعك في أقل من 24 ساعة ونرسل لك الرابط محمي بباسورد خاص بكما.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="container">
+    <div class="section-title-wrapper">
+      <span class="section-badge">الأسئلة الشائعة</span>
+      <h2 class="section-title" style="color:var(--text)">إجابات لكل استفساراتك</h2>
+      <p class="section-subtitle" style="color:var(--muted)">كل اللي في بالك — هنجاوب عليه هنا</p>
+    </div>
+    <div class="faq-list" id="faq-container"></div>
+  </div>
+</section>
+
+<!-- COUNTDOWN CTA -->
+<section class="countdown-cta">
+  <div class="container">
+    <h2 class="countdown-title">🔥 عرض محدود — لا تفوّته!</h2>
+    <p class="countdown-sub">الأسعار هترتفع قريباً — اطلب دلوقتي بالسعر المخفض</p>
+    <div class="countdown-urgent" id="countdown-urgent">⏰ باقي على انتهاء العرض...</div>
+    <div class="countdown-timer">
+      <div class="timer-unit"><span class="timer-num" id="cd-hours">22</span><span class="timer-label">ساعة</span></div>
+      <span class="timer-sep">:</span>
+      <div class="timer-unit"><span class="timer-num" id="cd-mins">00</span><span class="timer-label">دقيقة</span></div>
+      <span class="timer-sep">:</span>
+      <div class="timer-unit"><span class="timer-num" id="cd-secs">00</span><span class="timer-label">ثانية</span></div>
+    </div>
+    <a href="#order-section" class="btn btn-primary" style="font-size:1.15rem;padding:16px 48px;box-shadow:0 6px 30px rgba(0,0,0,.4)">اطلب الآن ❤️</a>
+  </div>
+</section>
+
+<!-- ORDER FORM -->
+<section class="cta" id="order-section">
+  <div class="container cta-wrapper">
+    <h2 class="cta-title">ابدأ تصميم كبسولتك الآن</h2>
+    <p class="cta-subtitle">املأ البيانات وسيقوم فريقنا بالتواصل معك وتصميم هديتك فوراً</p>
+    <div class="pricing-container">
+      <span class="old-price" id="pricing-old-price">٣٨٠ جنيه</span>
+      <span class="new-price" id="pricing-new-price">١٩٠ جنيه فقط</span>
+    </div>
+    <form class="order-form" id="order-form">
+      <div class="form-group">
+        <label class="form-label" for="client-name">الاسم الكامل *</label>
+        <input type="text" id="client-name" class="input-field" placeholder="أدخل اسمك الثلاثي" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="client-phone">رقم الموبايل *</label>
+        <input type="tel" id="client-phone" class="input-field" placeholder="مثال: 01012345678" required pattern="[0-9]+" title="يرجى إدخال أرقام فقط">
+      </div>
+      <div class="form-group">
+        <label class="form-label">رقم الواتساب نفس رقم الموبايل؟</label>
+        <div class="radio-group">
+          <label class="radio-label"><input type="radio" name="whatsapp-same" value="yes" checked id="wa-yes"> نعم</label>
+          <label class="radio-label"><input type="radio" name="whatsapp-same" value="no" id="wa-no"> لا، رقم آخر</label>
+        </div>
+      </div>
+      <div class="form-group" id="custom-whatsapp-group" style="display:none">
+        <label class="form-label" for="client-whatsapp">رقم الواتساب *</label>
+        <input type="tel" id="client-whatsapp" class="input-field" placeholder="مثال: 01012345678">
+      </div>
+      <button type="submit" class="btn btn-primary submit-btn">اطلب دلوقتي ❤️</button>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <p>&copy; 2026 جميع الحقوق محفوظة لـ <a href="#">رسائل الحب</a></p>
+  </div>
+</footer>
+
+<!-- ══ SCRIPTS ══ -->
+<script>
+/* ── HEARTS ── */
+(function(){
+  var em = document.getElementById('heart-emitter');
+  if (!em) return;
+  for (var i = 0; i < 20; i++) {
+    var h = document.createElement('div');
+    h.className = 'heart-particle';
+    h.style.cssText = 'left:' + (Math.random()*100) + 'vw;animation-delay:' + (Math.random()*15) + 's;font-size:' + (Math.random()*10+10) + 'px';
+    em.appendChild(h);
+  }
+})();
+
+/* ── WHATSAPP TOGGLE ── */
+document.getElementById('wa-no').addEventListener('change', function() {
+  document.getElementById('custom-whatsapp-group').style.display = 'block';
+  document.getElementById('client-whatsapp').required = true;
+});
+document.getElementById('wa-yes').addEventListener('change', function() {
+  document.getElementById('custom-whatsapp-group').style.display = 'none';
+  document.getElementById('client-whatsapp').required = false;
+});
+
+/* ── COUNTDOWN TIMER ── */
+(function() {
+  var STORAGE_KEY = 'lp_countdown_end';
+  var end = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+  var now = Date.now();
+  if (!end || end < now) {
+    // Set 24h from now
+    end = now + 24 * 60 * 60 * 1000;
+    localStorage.setItem(STORAGE_KEY, end);
+  }
+  function pad(n) { return String(n).padStart(2,'0'); }
+  function tick() {
+    var rem = Math.max(0, end - Date.now());
+    var h = Math.floor(rem / 3600000);
+    var m = Math.floor((rem % 3600000) / 60000);
+    var s = Math.floor((rem % 60000) / 1000);
+    document.getElementById('cd-hours').textContent = pad(h);
+    document.getElementById('cd-mins').textContent  = pad(m);
+    document.getElementById('cd-secs').textContent  = pad(s);
+    document.getElementById('countdown-urgent').textContent = '⏰ باقي على انتهاء العرض ' + h + ' ساعة و' + m + ' دقيقة';
+    if (rem <= 0) {
+      // Reset countdown
+      end = Date.now() + 24 * 60 * 60 * 1000;
+      localStorage.setItem(STORAGE_KEY, end);
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* ── FAQ ACCORDION ── */
+window.toggleFaq = function(el) {
+  var item = el.parentElement;
+  var isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(i){ i.classList.remove('open'); });
+  if (!isOpen) item.classList.add('open');
+};
+
+/* ── CAROUSEL ENGINE ── */
+var carousels = {};
+function initCarousel(id, total) {
+  if (!total) return;
+  carousels[id] = { current: 0, total: total, timer: null };
+  carousels[id].timer = setInterval(function(){ carouselNext(id); }, 3500);
+  var wrap = document.getElementById(id + '-track');
+  if (wrap && wrap.parentElement) {
+    wrap.parentElement.addEventListener('mouseenter', function(){ clearInterval(carousels[id].timer); });
+    wrap.parentElement.addEventListener('mouseleave', function(){ carousels[id].timer = setInterval(function(){ carouselNext(id); }, 3500); });
+  }
+}
+function carouselGoto(id, idx) {
+  var c = carousels[id]; if (!c) return;
+  c.current = idx;
+  var t = document.getElementById(id + '-track');
+  if (t) t.style.transform = 'translateX(' + (idx * 100) + '%)';
+  document.querySelectorAll('#' + id + '-dots .carousel-dot').forEach(function(d, i){ d.classList.toggle('active', i === idx); });
+}
+function carouselNext(id) { var c = carousels[id]; if (!c) return; carouselGoto(id, (c.current+1)%c.total); }
+function carouselPrev(id) { var c = carousels[id]; if (!c) return; carouselGoto(id, (c.current-1+c.total)%c.total); }
+window.carouselGoto = carouselGoto; window.carouselNext = carouselNext; window.carouselPrev = carouselPrev;
+
+/* ── DIRECT localStorage RENDER ── */
+(function() {
+  function lsGetJSON(k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e) { return def; } }
+
+  // Real Photos (instantly loaded)
+  function lsGet(k, def) { try { var v = localStorage.getItem(k); return v !== null ? v : def; } catch(e) { return def; } }
+  
+  var photos = lsGetJSON('lp_real_photos', []);
+  var validPhotos = photos.filter(function(p){ return p && p.url; });
+  var rpSec = document.getElementById('real-photos-section');
+  var rpGrid = document.getElementById('real-photos-grid');
+  if (validPhotos.length > 0 && rpSec && rpGrid) {
+    rpSec.style.display = 'block';
+    
+    var rpBadge = document.getElementById('real-photos-badge');
+    var rpTitle = document.getElementById('real-photos-title');
+    var rpSub = lsGet('lp_real_photos_subtitle', '📸 من عملائنا');
+    var rpT = lsGet('lp_real_photos_title', 'صور واقعية من مواقع عملائنا');
+    if (rpBadge) rpBadge.textContent = rpSub;
+    if (rpTitle) rpTitle.innerHTML = rpT.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
+
+    var topTxt = lsGet('lp_real_photos_title', '');
+    var topBox = document.getElementById('real-photos-top-box');
+    if (topTxt && topBox) {
+      topBox.style.display = 'block';
+      topBox.textContent = topTxt;
+    } else if (topBox) {
+      topBox.style.display = 'none';
+    }
+    
+    var bottomTxt = lsGet('lp_real_photos_desc', '');
+    var bottomBox = document.getElementById('real-photos-bottom-box');
+    if (bottomTxt && bottomBox) {
+      bottomBox.style.display = 'block';
+      bottomBox.textContent = bottomTxt;
+    } else if (bottomBox) {
+      bottomBox.style.display = 'none';
+    }
+
+    var itemsHtml = validPhotos.map(function(p){
+      return '<div class="real-photo-item"><img src="' + p.url + '" alt="صورة واقعية" loading="lazy"></div>';
+    }).join('');
+    rpGrid.innerHTML = itemsHtml + itemsHtml + itemsHtml;
+  }
+
+  // Site Details Section (instantly loaded)
+  var detSec = document.getElementById('details-section');
+  var detTitle = document.getElementById('details-title');
+  var detBadge = document.getElementById('details-badge');
+  var detText = document.getElementById('details-text');
+  var dTitle = lsGet('lp_details_title', '');
+  var dSub = lsGet('lp_details_subtitle', '');
+  var dText = lsGet('lp_details_text', '');
+  if (dText && detSec && detText) {
+    detSec.style.display = 'block';
+    if (detTitle && dTitle) detTitle.innerHTML = dTitle.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
+    if (detBadge && dSub) detBadge.textContent = dSub;
+    detText.textContent = dText;
+  }
+
+  // Image + Screenshot Sections
+  var sections = lsGetJSON('lp_sections', null);
+  if (!sections || !Array.isArray(sections)) return;
+  var container = document.getElementById('dynamic-sections-container');
+  if (!container) return;
+  var html = ''; var cc = 0;
+  sections.forEach(function(sec) {
+    if (!sec) return;
+    var type = sec.type || '';
+    if (type !== 'images-section' && type !== 'screenshots') return;
+    var rawTitle = (sec.title||'').replace(/\{([^}]+)\}/g,'<span style="background:linear-gradient(135deg,#8B1A4A,#C4547A);-webkit-background-clip:text;-webkit-text-fill-color:transparent">$1</span>');
+    if (type === 'images-section') {
+      var imgs = (sec.images||[]).filter(function(i){ return i&&i.url; });
+      html += '<section class="gallery-section"><div class="container"><div class="section-title-wrapper"><span class="section-badge">'+(sec.subtitle||'معرض الذكريات')+'</span><h2 class="section-title">'+rawTitle+'</h2>'+(sec.desc?'<p class="section-subtitle">'+sec.desc+'</p>':'')+'</div><div class="gallery-grid">'+(imgs.map(function(img){ return '<div class="gallery-card"><img src="'+img.url+'" alt="'+(img.title||'')+'" loading="lazy"><div class="gallery-card-body">'+(img.title?'<div class="gallery-card-title">'+img.title+'</div>':'')+(img.desc?'<div class="gallery-card-desc">'+img.desc+'</div>':'')+'</div></div>'; }).join('')||'<p style="text-align:center;padding:40px;color:var(--muted)">أضف صور من لوحة التحكم</p>')+'</div>'+(sec.bottomDesc?'<div class="gallery-bottom-desc">'+sec.bottomDesc+'</div>':'')+'</div></section>';
+    } else {
+      var cId = 'c-'+cc++;
+      var imgs = (sec.images||[]).filter(function(i){ return i&&i.url; });
+      var slides = imgs.map(function(img){ return '<div class="carousel-slide"><img src="'+img.url+'" alt="'+(img.title||'')+'" loading="lazy">'+(img.title?'<div class="slide-caption-top">'+img.title+'</div>':'')+(img.desc?'<div class="slide-caption-bottom">'+img.desc+'</div>':'')+'</div>'; }).join('');
+      var dots = imgs.map(function(_,i){ return '<button class="carousel-dot'+(i===0?' active':'')+'" onclick="carouselGoto(\''+cId+'\','+i+')"></button>'; }).join('');
+      html += '<section class="slider-section"><div class="container"><div class="section-title-wrapper"><span class="section-badge">'+(sec.subtitle||'لقطات شاشة 📱')+'</span><h2 class="section-title">'+rawTitle+'</h2></div>'+(sec.desc?'<p class="slider-desc-top">'+sec.desc+'</p>':'')+'<div class="carousel-outer"><button class="carousel-btn carousel-btn-prev" onclick="carouselPrev(\''+cId+'\')">&#8250;</button><button class="carousel-btn carousel-btn-next" onclick="carouselNext(\''+cId+'\')">&#8249;</button><div class="carousel-track-wrap"><div class="carousel-track" id="'+cId+'-track">'+(slides||'<div class="carousel-slide" style="background:#111;min-height:250px;display:flex;align-items:center;justify-content:center;color:#aaa">أضف اسكرينات من لوحة التحكم</div>')+'</div></div><div class="carousel-dots" id="'+cId+'-dots">'+dots+'</div></div>'+(sec.bottomDesc?'<div class="slider-bottom-desc">'+sec.bottomDesc+'</div>':'')+'</div></section>';
+      setTimeout(function(){ initCarousel(cId, imgs.length); }, 300);
+    }
+  });
+  if (html) container.innerHTML = html;
+})();
+
+/* ── SUPABASE + RENDER ── */
+var SB = null;
+try { if (window.supabase) SB = window.supabase.createClient('https://kfuwvgsglmqothjubvou.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdXd2Z3NnbG1xb3RoanVidm91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MDYzNTUsImV4cCI6MjA5ODA4MjM1NX0.mn3ezgwYMoKFlmG8kkErcZ8tNATpQr7lKeTf6R8Zg0A'); } catch(e) {}
+
+function lsGet(k,def){ try{var v=localStorage.getItem(k);return v!==null?v:def;}catch(e){return def;} }
+function lsGetJSON(k,def){ try{var v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;} }
+
+function renderConfig(cfg) {
+  if (!cfg) return;
+  var price = parseInt(cfg.price)||190;
+  var oldPrice = parseInt(cfg.old_price||cfg.oldPrice)||(price*2);
+  // Prices
+  document.getElementById('nav-action-btn').textContent = 'احجز الآن — ' + price + ' جنيه';
+  document.getElementById('pricing-old-price').textContent = oldPrice + ' جنيه';
+  document.getElementById('pricing-new-price').textContent = price + ' جنيه فقط';
+  document.getElementById('hero-price-badge').textContent = price + ' جنيه فقط';
+  // Promo
+  var promoOn = cfg.promo_on !== undefined ? cfg.promo_on : (cfg.promo_toggle !== false);
+  var banner = document.getElementById('promo-banner-text');
+  if (promoOn !== false) {
+    var text = cfg.promo_text || '⏰ عرض محدود — أول 50 طلب بسعر 190 جنيه بس';
+    text = text.replace(/190/g, price); // Dynamically swap 190 with the new price
+    banner.textContent = text;
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+  // Hero
+  if (cfg.hero_title) document.getElementById('hero-main-title').innerHTML = cfg.hero_title.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
+  if (cfg.hero_desc) document.getElementById('hero-description').textContent = cfg.hero_desc;
+  // Steps
+  if (cfg.steps_title) document.getElementById('steps-title').textContent = cfg.steps_title;
+  if (cfg.step1_title) document.getElementById('step1-title').textContent = cfg.step1_title;
+  if (cfg.step1_desc)  document.getElementById('step1-desc').textContent  = cfg.step1_desc;
+  if (cfg.step2_title) document.getElementById('step2-title').textContent = cfg.step2_title;
+  if (cfg.step2_desc)  document.getElementById('step2-desc').textContent  = cfg.step2_desc;
+  if (cfg.step3_title) document.getElementById('step3-title').textContent = cfg.step3_title;
+  if (cfg.step3_desc)  document.getElementById('step3-desc').textContent  = cfg.step3_desc;
+  // Testimonials
+  var tests = Array.isArray(cfg.testimonials) ? cfg.testimonials : lsGetJSON('lp_testimonials',[{name:'محمد ونهى',text:'فكرة مبتكرة وأحسن بكتير من الهدايا التقليدية!',rating:5}]);
+  var tc = document.getElementById('testimonials-container');
+  if (tc) tc.innerHTML = tests.map(function(t){
+    if (!t) return '';
+    var stars = '';
+    for(var i=0;i<(t.rating||5);i++) stars += '★';
+    return '<div class="testimonial-card"><div class="stars">'+stars+'</div><p class="testimonial-text">"'+(t.text||'')+(t.source?'<br><small style="opacity:.6">— '+t.source+'</small>':'')+'"</p><div class="testimonial-name">'+( t.name||'عميل')+'</div></div>';
+  }).join('');
+  // FAQs
+  var faqs = Array.isArray(cfg.faqs) ? cfg.faqs : lsGetJSON('lp_faqs',[{q:'إزاي شريكي هيفتح الموقع؟',a:'بنرسلك رابط خاص وباسورد بتختاروه سوا.'}]);
+  var fc = document.getElementById('faq-container');
+  if (fc) fc.innerHTML = faqs.map(function(f,i){
+    if (!f) return '';
+    return '<div class="faq-item" id="faq-'+i+'"><div class="faq-question" onclick="toggleFaq(this)"><span>'+(f.q||'')+'</span><div class="faq-arrow">▼</div></div><div class="faq-answer"><div class="faq-answer-inner">'+(f.a||'')+'</div></div></div>';
+  }).join('');
+  // Real photos (vertical 9:16 grid with top/bottom text boxes)
+  var rp = Array.isArray(cfg.real_photos) ? cfg.real_photos : lsGetJSON('lp_real_photos',[]);
+  var validRp = rp.filter(function(p){ return p&&p.url; });
+  var rpSec = document.getElementById('real-photos-section');
+  var rpGrid = document.getElementById('real-photos-grid');
+  if (validRp.length > 0 && rpSec && rpGrid) {
+    rpSec.style.display = 'block';
+    
+    // Custom Titles/Badges
+    var rpBadge = document.getElementById('real-photos-badge');
+    var rpTitle = document.getElementById('real-photos-title');
+    var rpSub = cfg.real_photos_subtitle || lsGet('lp_real_photos_subtitle', '📸 من عملائنا');
+    var rpT = cfg.real_photos_title || lsGet('lp_real_photos_title', 'صور <span class="text-highlight">واقعية</span> من مواقع عملائنا');
+    if (rpBadge) rpBadge.textContent = rpSub;
+    if (rpTitle) rpTitle.innerHTML = rpT.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
+
+    // Top box
+    var topTxt = cfg.real_photos_top_text || lsGet('lp_real_photos_title', '');
+    var topBox = document.getElementById('real-photos-top-box');
+    if (topTxt && topBox) {
+      topBox.style.display = 'block';
+      topBox.textContent = topTxt;
+    } else if (topBox) {
+      topBox.style.display = 'none';
+    }
+    
+    // Bottom box
+    var bottomTxt = cfg.real_photos_desc || lsGet('lp_real_photos_desc', '');
+    var bottomBox = document.getElementById('real-photos-bottom-box');
+    if (bottomTxt && bottomBox) {
+      bottomBox.style.display = 'block';
+      bottomBox.textContent = bottomTxt;
+    } else if (bottomBox) {
+      bottomBox.style.display = 'none';
+    }
+
+    var itemsHtml = validRp.map(function(p){ return '<div class="real-photo-item"><img src="'+p.url+'" alt="صورة واقعية" loading="lazy"></div>'; }).join('');
+    rpGrid.innerHTML = itemsHtml + itemsHtml + itemsHtml;
+  } else if (rpSec) {
+    rpSec.style.display = 'none';
+  }
+
+  // Site Details Section (تفاصيل الموقع)
+  var detSec = document.getElementById('details-section');
+  var detTitle = document.getElementById('details-title');
+  var detBadge = document.getElementById('details-badge');
+  var detText = document.getElementById('details-text');
+  
+  var dTitle = cfg.details_title || lsGet('lp_details_title', '');
+  var dSub = cfg.details_subtitle || lsGet('lp_details_subtitle', '');
+  var dText = cfg.details_text || lsGet('lp_details_text', '');
+  
+  if (dText && detSec && detText) {
+    detSec.style.display = 'block';
+    if (detTitle && dTitle) detTitle.innerHTML = dTitle.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
+    if (detBadge && dSub) detBadge.textContent = dSub;
+    detText.textContent = dText;
+  } else if (detSec) {
+    detSec.style.display = 'none';
+  }
+
+  // Thank you page texts
+  var tyPage = document.getElementById('thankyou-page');
+  if (tyPage) {
+    var tyTitle = tyPage.querySelector('.ty-title');
+    var tySub = tyPage.querySelector('.ty-sub');
+    var tySteps = tyPage.querySelectorAll('.ty-step p');
+    
+    var tTitle = cfg.thank_title || lsGet('lp_thank_title', 'تم استلام طلبك! 🎉');
+    var tDesc = cfg.thank_desc || lsGet('lp_thank_desc', 'شكراً ليك! فريقنا هيتواصل معاك على الواتساب في أقرب وقت عشان نبدأ نجهز هديتك الرومانسية 💕');
+    var tS1 = cfg.thank_step1 || lsGet('lp_thank_step1', 'هنتواصل معاك على الواتساب خلال ساعات قليلة');
+    var tS2 = cfg.thank_step2 || lsGet('lp_thank_step2', 'هتبعتلنا الصور والرسائل والتفاصيل اللي عايزها');
+    var tS3 = cfg.thank_step3 || lsGet('lp_thank_step3', 'في أقل من 24 ساعة موقعك هيكون جاهز! 🚀');
+    
+    if (tyTitle) tyTitle.textContent = tTitle;
+    if (tySub) tySub.textContent = tDesc;
+    if (tySteps.length >= 3) {
+      tySteps[0].textContent = tS1;
+      tySteps[1].textContent = tS2;
+      tySteps[2].textContent = tS3;
+    }
+  }
+}
+
+// Load config (local first, then Supabase)
+(function() {
+  var localCfg = {
+    price: parseInt(lsGet('lp_price','190')),
+    old_price: parseInt(lsGet('lp_oldprice','380')),
+    promo_text: lsGet('lp_promo','⏰ عرض محدود — أول 50 طلب بسعر 190 جنيه بس'),
+    promo_on: lsGet('lp_promoon','1')==='1',
+    hero_title: lsGet('lp_herotitle',''),
+    hero_desc: lsGet('lp_herodesc',''),
+    steps_title: lsGet('lp_steps_title',''),
+    step1_title: lsGet('lp_step1_title',''), step1_desc: lsGet('lp_step1_desc',''),
+    step2_title: lsGet('lp_step2_title',''), step2_desc: lsGet('lp_step2_desc',''),
+    step3_title: lsGet('lp_step3_title',''), step3_desc: lsGet('lp_step3_desc',''),
+    testimonials: lsGetJSON('lp_testimonials',null),
+    faqs: lsGetJSON('lp_faqs',null),
+    
+    // Real photos
+    real_photos: lsGetJSON('lp_real_photos',null),
+    real_photos_title: lsGet('lp_real_photos_title',''),
+    real_photos_subtitle: lsGet('lp_real_photos_subtitle',''),
+    real_photos_desc: lsGet('lp_real_photos_desc',''),
+    
+    // Details Section
+    details_title: lsGet('lp_details_title',''),
+    details_subtitle: lsGet('lp_details_subtitle',''),
+    details_text: lsGet('lp_details_text',''),
+    
+    // Thank you page
+    thank_title: lsGet('lp_thank_title',''),
+    thank_desc: lsGet('lp_thank_desc',''),
+    thank_step1: lsGet('lp_thank_step1',''),
+    thank_step2: lsGet('lp_thank_step2',''),
+    thank_step3: lsGet('lp_thank_step3','')
+  };
+  renderConfig(localCfg);
+
+  if (SB) {
+    SB.from('page_config').select('*').eq('key','default').single().then(function(res){
+      if (!res.error && res.data) renderConfig(res.data);
+    }).catch(function(){});
+  }
+})();
+
+/* ── ORDER SUBMIT ── */
+document.getElementById('order-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  var name  = document.getElementById('client-name').value.trim();
+  var phone = document.getElementById('client-phone').value.trim();
+  var waSame = document.querySelector('input[name="whatsapp-same"]:checked').value;
+  var whatsapp = waSame === 'yes' ? phone : document.getElementById('client-whatsapp').value.trim();
+  var btn = this.querySelector('.submit-btn');
+  btn.textContent = 'جاري الإرسال...'; btn.disabled = true;
+
+  var order = { status: 'جديد', inputs: { name: name, phone: phone, whatsapp: whatsapp, date: new Date().toLocaleDateString('ar-EG') }, created_at: new Date().toISOString() };
+
+  if (SB) {
+    try {
+      await SB.from('orders').insert([{ status: 'جديد', inputs: order.inputs, created_at: order.created_at }]);
+    } catch(err) { console.warn('Supabase insert failed, saving locally'); saveOrderLocally(order); }
+  } else {
+    saveOrderLocally(order);
+  }
+
+  // Show thank you page
+  document.getElementById('thankyou-page').classList.add('show');
+  this.reset();
+  document.getElementById('custom-whatsapp-group').style.display = 'none';
+  btn.textContent = 'اطلب دلوقتي ❤️'; btn.disabled = false;
+});
+
+function saveOrderLocally(order) {
+  try {
+    var orders = JSON.parse(localStorage.getItem('lp_orders')||'[]');
+    order.id = 'local-' + Date.now();
+    orders.unshift(order);
+    localStorage.setItem('lp_orders', JSON.stringify(orders));
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

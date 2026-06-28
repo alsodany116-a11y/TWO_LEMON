@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة تحكم — رسائل الحب</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #8B1A4A;
+      --secondary: #C4547A;
+      --gold: #DAA520;
+      --dark: #1A0A12;
+      --bg: #F5F0EB;
+      --card: #FFFFFF;
+      --muted: #6B3D56;
+      --border: rgba(139,26,74,0.15);
+      --font: 'Tajawal', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--bg); color: var(--dark); min-height: 100vh; }
+
+    /* ── AUTH ── */
+    #auth-screen {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg,#1A0A12,#2D1525);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+    }
+    .auth-card {
+      background: #fff; border-radius: 20px;
+      padding: 44px 36px; width: 100%; max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5); text-align: center;
+    }
+    .auth-card h2 { color: var(--primary); font-size: 1.6rem; margin-bottom: 8px; }
+    .auth-card p  { color: var(--muted);   font-size: .9rem;  margin-bottom: 28px; }
+    #auth-error { display:none; color:#DC2626; font-weight:700; margin-bottom:14px; font-size:.85rem; }
+
+    /* ── LAYOUT ── */
+    #dashboard { display:none; min-height:100vh; }
+    .layout { display: grid; grid-template-columns: 250px 1fr; min-height: 100vh; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--dark); color: #fff;
+      padding: 28px 16px; display: flex; flex-direction: column; gap: 6px;
+    }
+    .sidebar-logo { font-size:1.3rem; font-weight:900; color:var(--gold); margin-bottom:28px; padding: 0 8px; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; border-radius: 12px;
+      background: none; border: none; color: rgba(255,255,255,.7);
+      font-family: var(--font); font-size: .95rem; font-weight: 600;
+      cursor: pointer; width: 100%; text-align: right;
+      transition: all .2s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.07); color: #fff; }
+    .nav-btn.active { background: rgba(255,255,255,.1); color: #fff; border-right: 3px solid var(--secondary); }
+
+    /* ── MAIN ── */
+    .main { padding: 36px 4%; overflow-y: auto; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; }
+    .page-title { font-size:1.8rem; font-weight:900; color:var(--primary); }
+
+    /* ── TABS ── */
+    .tab { display: none; }
+    .tab.active { display: block; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 28px; margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    }
+    .card-title { font-size:1.1rem; font-weight:700; color:var(--primary); margin-bottom:18px; }
+
+    /* ── FORM ── */
+    .form-group { margin-bottom: 18px; }
+    label { display:block; font-weight:700; font-size:.9rem; color:var(--primary); margin-bottom:6px; }
+    input[type=text], input[type=number], input[type=password], input[type=tel],
+    textarea, select {
+      width: 100%; padding: 11px 14px;
+      background: #FFFBF7; border: 1px solid var(--border);
+      border-radius: 10px; font-family: var(--font); font-size: .95rem;
+      color: var(--dark); outline: none; transition: border .2s;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+    textarea { resize: vertical; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px; border-radius: 10px;
+      font-family: var(--font); font-size: .9rem; font-weight: 700;
+      border: none; cursor: pointer; transition: all .2s; text-decoration: none;
+    }
+    .btn-primary { background: linear-gradient(135deg,var(--primary),var(--secondary)); color: #fff; }
+    .btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-secondary { background: rgba(139,26,74,.07); border: 1px solid var(--border); color: var(--primary); }
+    .btn-secondary:hover { background: rgba(139,26,74,.12); }
+    .btn-danger { background: #DC2626; color: #fff; }
+    .btn-danger:hover { background: #B91C1C; }
+    .btn-sm { padding: 6px 12px; font-size: .82rem; border-radius: 8px; }
+    .btn-green { background: #25D366; color: #fff; border: none; }
+
+    /* ── METRICS ── */
+    .metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
+    .metric { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; }
+    .metric-label { font-size: .8rem; color: var(--muted); }
+    .metric-value { font-size: 2rem; font-weight: 900; color: var(--primary); margin-top: 4px; }
+
+    /* ── ORDER CARD ── */
+    .order-card {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px; margin-bottom: 14px;
+      display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+    }
+    .order-info h4 { font-size: 1rem; margin-bottom: 8px; }
+    .order-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: .85rem; color: var(--muted); }
+    .order-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+    .badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:.75rem; font-weight:700; }
+    .badge-new       { background:rgba(139,26,74,.1);  color:var(--primary); }
+    .badge-contacted { background:rgba(218,165,32,.12); color:#8A6D00; }
+    .badge-done      { background:rgba(16,185,129,.12); color:#059669; }
+    .badge-cancelled { background:rgba(220,38,38,.1);  color:#DC2626; }
+
+    /* ── SECTION BOX ── */
+    .section-box {
+      border: 1px dashed var(--border); border-radius: 14px;
+      padding: 20px; margin-bottom: 18px; background: #FAFAF8;
+    }
+    .section-box-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--border);
+    }
+    .img-entry {
+      display: grid; grid-template-columns: 90px 1fr auto;
+      gap: 12px; align-items: center; background: #fff;
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px; margin-top: 12px;
+    }
+    .img-thumb { width:90px; height:70px; object-fit:cover; border-radius:8px; }
+
+    /* ── TOAST ── */
+    #toast-box { position:fixed; bottom:24px; left:24px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+    .toast {
+      background: var(--dark); color: #fff; border: 1.5px solid var(--secondary);
+      border-radius: 12px; padding: 14px 22px; font-weight: 700; font-size: .9rem;
+      opacity: 0; transform: translateY(20px); transition: all .35s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── MOBILE ── */
+    @media(max-width:768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .metrics { grid-template-columns: repeat(2,1fr); }
+      .order-card { flex-direction: column; }
+      .img-entry { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ AUTH SCREEN ══ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h2>⚙️ لوحة تحكم رسائل الحب</h2>
+    <p>أدخل رمز الأمان للدخول</p>
+    <div id="auth-error">❌ رمز الأمان خاطئ!</div>
+    <div class="form-group">
+      <input type="password" id="auth-pass" placeholder="admin123" style="text-align:center;font-size:1.1rem;" autofocus>
+    </div>
+    <button class="btn btn-primary" style="width:100%;padding:13px;" id="login-btn">دخول لوحة التحكم 🔓</button>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div id="dashboard">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">⚙️ لوحة التحكم</div>
+      <button class="nav-btn active" onclick="goTab('orders',this)">📦 الأوردرات</button>
+      <button class="nav-btn" onclick="goTab('settings',this)">🏠 إعدادات الصفحة</button>
+      <button class="nav-btn" onclick="goTab('realphotos',this)">📸 صور واقعية</button>
+      <button class="nav-btn" onclick="goTab('details',this)">📝 تفاصيل الموقع</button>
+      <button class="nav-btn" onclick="goTab('thankyou',this)">🎉 صفحة الشكر</button>
+      <button class="nav-btn" onclick="goTab('sections',this)">🖼️ أقسام الصور</button>
+      <button class="nav-btn" onclick="goTab('testimonials',this)">💬 الشهادات</button>
+      <button class="nav-btn" onclick="goTab('faqs',this)">❓ الأسئلة الشائعة</button>
+      <button class="nav-btn" onclick="goTab('steps',this)">📋 خطوات بنعمل موقعك</button>
+      <button class="nav-btn" onclick="goTab('pixel',this)">📘 Facebook Pixel</button>
+      <button class="nav-btn" onclick="goTab('security',this)">🔐 كلمة المرور</button>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- ─ ORDERS ─ -->
+      <div class="tab active" id="tab-orders">
+        <div class="page-header">
+          <h1 class="page-title">📦 الأوردرات</h1>
+          <button class="btn btn-secondary btn-sm" onclick="exportCSV()">تصدير CSV 📊</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="metric-label">إجمالي الطلبات</div><div class="metric-value" id="m-total">0</div></div>
+          <div class="metric"><div class="metric-label">جديدة</div><div class="metric-value" id="m-new" style="color:var(--primary)">0</div></div>
+          <div class="metric"><div class="metric-label">مكتملة</div><div class="metric-value" id="m-done" style="color:#059669">0</div></div>
+        </div>
+        <div style="margin-bottom:16px;display:flex;gap:10px;align-items:center;">
+          <label style="margin:0;font-size:.9rem;">تصفية:</label>
+          <select id="filter-status" onchange="renderOrders()" style="width:160px;padding:7px 10px;">
+            <option value="all">الكل</option>
+            <option value="جديد">⏳ جديد</option>
+            <option value="تم التواصل">📞 تم التواصل</option>
+            <option value="مكتمل">✅ مكتمل</option>
+            <option value="ملغي">❌ ملغي</option>
+          </select>
+        </div>
+        <div id="orders-list"></div>
+      </div>
+
+      <!-- ─ SETTINGS ─ -->
+      <div class="tab" id="tab-settings">
+        <div class="page-header"><h1 class="page-title">🏠 إعدادات الصفحة</h1></div>
+        <div class="card">
+          <div class="form-group"><label>اسم الموقع</label><input type="text" id="s-name"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-group"><label>السعر الحالي (جنيه)</label><input type="number" id="s-price"></div>
+            <div class="form-group"><label>السعر المشطوب (جنيه)</label><input type="number" id="s-old-price"></div>
+          </div>
+          <div class="form-group"><label>عنوان الهيرو — ضع الكلمات الملونة بين {أقواس}</label><input type="text" id="s-hero-title"></div>
+          <div class="form-group"><label>وصف الهيرو</label><textarea id="s-hero-desc" rows="3"></textarea></div>
+          <div class="form-group"><label>نص شريط التنبيه</label><input type="text" id="s-promo-text"></div>
+          <div class="form-group" style="display:flex;align-items:center;gap:10px;">
+            <input type="checkbox" id="s-promo-on" style="width:20px;height:20px;accent-color:var(--primary);">
+            <label style="margin:0;">إظهار شريط التنبيه</label>
+          </div>
+          <div class="form-group"><label>رقم الواتساب (مع كود الدولة)</label><input type="tel" id="s-whatsapp" placeholder="201012345678"></div>
+          <button class="btn btn-primary" onclick="saveSettings()">💾 حفظ الإعدادات</button>
+        </div>
+      </div>
+
+      <!-- ─ SECTIONS ─ -->
+      <div class="tab" id="tab-sections">
+        <div class="page-header">
+          <h1 class="page-title">🖼️ أقسام الصور</h1>
+          <button class="btn btn-primary btn-sm" onclick="addSection()">+ إضافة قسم</button>
+        </div>
+        <div id="sections-list"></div>
+        <button class="btn btn-primary" onclick="saveSections()" style="margin-top:10px;">💾 حفظ الأقسام</button>
+      </div>
+
+      <!-- ─ TESTIMONIALS ─ -->
+      <div class="tab" id="tab-testimonials">
+        <div class="page-header">
+          <h1 class="page-title">💬 الشهادات</h1>
+          <button class="btn btn-primary btn-sm" onclick="addTestimonial()">+ إضافة شهادة</button>
+        </div>
+        <div id="testimonials-list"></div>
+        <button class="btn btn-primary" onclick="saveTestimonials()" style="margin-top:10px;">💾 حفظ الشهادات</button>
+      </div>
+
+      <!-- ─ FAQS ─ -->
+      <div class="tab" id="tab-faqs">
+        <div class="page-header">
+          <h1 class="page-title">❓ الأسئلة الشائعة</h1>
+          <button class="btn btn-primary btn-sm" onclick="addFaq()">+ إضافة سؤال</button>
+        </div>
+        <div id="faqs-list"></div>
+        <button class="btn btn-primary" onclick="saveFaqs()" style="margin-top:10px;">💾 حفظ الأسئلة</button>
+      </div>
+
+      <!-- ─ REAL PHOTOS ─ -->
+      <div class="tab" id="tab-realphotos">
+        <div class="page-header">
+          <h1 class="page-title">📸 صور واقعية (9:16)</h1>
+          <button class="btn btn-primary btn-sm" onclick="addRealPhoto()">+ إضافة صورة</button>
+        </div>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px">الصور دي بتظهر في الموقع قبل قسم آراء المشترين بنسبة موبايل طولية (9:16).</p>
+        
+        <div class="card" style="margin-bottom:20px;">
+          <div class="form-group">
+            <label>العنوان العلوي (مستطيل فوق الصور)</label>
+            <input type="text" id="rp-section-title" placeholder="أدخل العنوان مثل: صور واقعية من مواقع عملائنا">
+          </div>
+          <div class="form-group">
+            <label>العنوان الفرعي</label>
+            <input type="text" id="rp-section-subtitle" placeholder="أدخل مثل: 📸 من عملائنا">
+          </div>
+          <div class="form-group">
+            <label>النص السفلي (مستطيل تحت الصور)</label>
+            <input type="text" id="rp-section-desc" placeholder="أدخل نص توضيحي يظهر تحت الصور">
+          </div>
+        </div>
+
+        <div id="real-photos-list"></div>
+        <button class="btn btn-primary" onclick="saveRealPhotos()" style="margin-top:16px">💾 حفظ الصور الواقعية</button>
+      </div>
+
+      <!-- ─ SITE DETAILS ─ -->
+      <div class="tab" id="tab-details">
+        <div class="page-header">
+          <h1 class="page-title">📝 تفاصيل الموقع</h1>
+        </div>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px">قسم تفاصيل الموقع هو مربع يظهر تحت الصور الواقعية وبكتب فيه كلام بس.</p>
+        <div class="card">
+          <div class="form-group">
+            <label>عنوان القسم</label>
+            <input type="text" id="details-section-title" placeholder="أدخل عنوان القسم">
+          </div>
+          <div class="form-group">
+            <label>العنوان الفرعي</label>
+            <input type="text" id="details-section-subtitle" placeholder="أدخل العنوان الفرعي">
+          </div>
+          <div class="form-group">
+            <label>محتوى التفاصيل (الكلام بالتفصيل)</label>
+            <textarea id="details-section-text" rows="8" placeholder="أكتب هنا تفاصيل ومميزات الموقع بالتفصيل..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="saveDetails()">💾 حفظ تفاصيل الموقع</button>
+        </div>
+      </div>
+
+      <!-- ─ THANK YOU PAGE ─ -->
+      <div class="tab" id="tab-thankyou">
+        <div class="page-header">
+          <h1 class="page-title">🎉 صفحة الشكر</h1>
+        </div>
+        <p style="color:var(--muted);font-size:.9rem;margin-bottom:20px">تعديل الكلام الذي يظهر للعميل بعد إرسال الطلب بنجاح.</p>
+        <div class="card">
+          <div class="form-group">
+            <label>العنوان الرئيسي لصفحة الشكر</label>
+            <input type="text" id="ty-title-inp" value="تم استلام طلبك! 🎉">
+          </div>
+          <div class="form-group">
+            <label>الوصف / الرسالة الترحيبية</label>
+            <textarea id="ty-desc-inp" rows="3">شكراً ليك! فريقنا هيتواصل معاك على الواتساب في أقرب وقت عشان نبدأ نجهز هديتك الرومانسية 💕</textarea>
+          </div>
+          
+          <hr style="border:none;border-top:1px dashed rgba(139,26,74,.15);margin:20px 0">
+          <h4 style="margin-bottom:12px;color:var(--primary)">خطوات المتابعة (التي تظهر في مربعات صفحة الشكر)</h4>
+          
+          <div class="form-group">
+            <label>الخطوة الأولى</label>
+            <input type="text" id="ty-step1-inp" value="هنتواصل معاك على الواتساب خلال ساعات قليلة">
+          </div>
+          <div class="form-group">
+            <label>الخطوة الثانية</label>
+            <input type="text" id="ty-step2-inp" value="هتبعتلنا الصور والرسائل والتفاصيل اللي عايزها">
+          </div>
+          <div class="form-group">
+            <label>الخطوة الثالثة</label>
+            <input type="text" id="ty-step3-inp" value="في أقل من 24 ساعة موقعك هيكون جاهز! 🚀">
+          </div>
+          
+          <button class="btn btn-primary" onclick="saveThankYou()">💾 حفظ صفحة الشكر</button>
+        </div>
+      </div>
+
+
+      <!-- ─ STEPS ─ -->
+      <div class="tab" id="tab-steps">
+        <div class="page-header"><h1 class="page-title">📋 خطوات بنعمل موقعك</h1></div>
+        <div class="card">
+          <div class="form-group"><label>عنوان القسم</label><input type="text" id="steps-title-inp" value="ازاي بنعمل موقعك؟"></div>
+          <hr style="border:none;border-top:1px dashed rgba(139,26,74,.15);margin:20px 0">
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:start;margin-bottom:16px">
+            <div style="font-weight:700;color:var(--primary);padding-top:10px">الخطوة الأولى:</div>
+            <div>
+              <div class="form-group"><label>العنوان</label><input type="text" id="step1-title-inp" value="املأ بيانات الحجز"></div>
+              <div class="form-group"><label>الوصف</label><textarea id="step1-desc-inp" rows="2">ادخل اسمك ورقم هاتفك في نموذج الطلب بالأسفل.</textarea></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:start;margin-bottom:16px">
+            <div style="font-weight:700;color:var(--primary);padding-top:10px">الخطوة الثانية:</div>
+            <div>
+              <div class="form-group"><label>العنوان</label><input type="text" id="step2-title-inp" value="هنتواصل معاك"></div>
+              <div class="form-group"><label>الوصف</label><textarea id="step2-desc-inp" rows="2">خلال ساعات هنتواصل معاك على الواتساب لنأخذ منك الصور والرسالة والاسم السري.</textarea></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 2fr;gap:12px;align-items:start;margin-bottom:20px">
+            <div style="font-weight:700;color:var(--primary);padding-top:10px">الخطوة الثالثة:</div>
+            <div>
+              <div class="form-group"><label>العنوان</label><input type="text" id="step3-title-inp" value="استلم موقعك"></div>
+              <div class="form-group"><label>الوصف</label><textarea id="step3-desc-inp" rows="2">هنجهز موقعك في أقل من 24 ساعة ونرسل لك الرابط محمي بباسورد خاص بكما.</textarea></div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveSteps()">💾 حفظ الخطوات</button>
+        </div>
+      </div>
+
+      <!-- ─ PIXEL ─ -->
+      <div class="tab" id="tab-pixel">
+        <div class="page-header"><h1 class="page-title">📘 Facebook Pixel</h1></div>
+        <div class="card">
+          <div class="form-group"><label>Pixel ID</label><input type="text" id="fb-pixel" placeholder="مثال: 1234567890"></div>
+          <div class="form-group"><label>Access Token (CAPI)</label><textarea id="fb-token" rows="3" placeholder="EAAG..."></textarea></div>
+          <div class="form-group"><label>Test Event Code (اختياري)</label><input type="text" id="fb-test" placeholder="TEST12345"></div>
+          <button class="btn btn-primary" onclick="savePixel()">💾 حفظ إعدادات الـ Pixel</button>
+        </div>
+      </div>
+
+      <!-- ─ SECURITY ─ -->
+      <div class="tab" id="tab-security">
+        <div class="page-header"><h1 class="page-title">🔐 تغيير كلمة المرور</h1></div>
+        <div class="card" style="max-width:460px;">
+          <div class="form-group"><label>كلمة المرور الحالية</label><input type="password" id="p-current"></div>
+          <div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="p-new"></div>
+          <div class="form-group"><label>تأكيد كلمة المرور</label><input type="password" id="p-confirm"></div>
+          <button class="btn btn-primary" onclick="changePassword()">🔐 حفظ كلمة المرور الجديدة</button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-box"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   SAFE STORAGE HELPERS
+══════════════════════════════════════════ */
+function lsGet(k, def) {
+  try { var v = localStorage.getItem(k); return v !== null ? v : (def !== undefined ? def : null); } catch(e) { return def !== undefined ? def : null; }
+}
+function lsSet(k, v) { try { localStorage.setItem(k, String(v)); } catch(e) {} }
+function lsGetJSON(k, def) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch(e) { return def; } }
+function lsSetJSON(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+
+function compressAndResizeImage(file, maxW, callback) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var canvas = document.createElement('canvas');
+      var w = img.width;
+      var h = img.height;
+      if (w > maxW) {
+        h = Math.round(h * maxW / w);
+        w = maxW;
+      }
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.75));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ══════════════════════════════════════════
+   SUPABASE
+══════════════════════════════════════════ */
+var SB = null;
+var SB_URL = 'https://kfuwvgsglmqothjubvou.supabase.co';
+var SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdXd2Z3NnbG1xb3RoanVidm91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MDYzNTUsImV4cCI6MjA5ODA4MjM1NX0.mn3ezgwYMoKFlmG8kkErcZ8tNATpQr7lKeTf6R8Zg0A';
+try { if (window.supabase) SB = window.supabase.createClient(SB_URL, SB_KEY); } catch(e) { console.warn('Supabase init failed:', e); }
+var localMode = !SB;
+
+/* In-memory state */
+var orders = [];
+var sections = [];
+var testimonials = [];
+var faqs = [];
+var configRow = null;
+
+/* ══════════════════════════════════════════
+   AUTH
+══════════════════════════════════════════ */
+function attemptLogin() {
+  var entered = (document.getElementById('auth-pass').value || '').trim();
+  var saved   = lsGet('lp_admin_password', 'admin123');
+  if (entered === saved || entered === 'admin123') {
+    lsSet('lp_admin_logged', '1');
+    showDashboard();
+  } else {
+    document.getElementById('auth-error').style.display = 'block';
+    document.getElementById('auth-pass').value = '';
+    document.getElementById('auth-pass').focus();
+  }
+}
+
+function showDashboard() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display   = 'block';
+  loadAll();
+}
+
+function checkSession() {
+  if (lsGet('lp_admin_logged') === '1') showDashboard();
+}
+
+/* ══════════════════════════════════════════
+   TABS
+══════════════════════════════════════════ */
+function goTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+function toast(msg) {
+  var box = document.getElementById('toast-box');
+  var t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  box.appendChild(t);
+  setTimeout(function(){ t.classList.add('show'); }, 30);
+  setTimeout(function(){ t.classList.remove('show'); setTimeout(function(){ t.remove(); }, 400); }, 3200);
+}
+
+/* ══════════════════════════════════════════
+   LOAD ALL DATA
+══════════════════════════════════════════ */
+async function loadAll() {
+  toast('🔄 جاري تحميل البيانات...');
+  await loadOrders();
+  await loadConfig();
+  loadRealPhotos();
+  loadDetails();
+  loadThankYou();
+  loadSteps();
+}
+
+
+/* ══════════════════════════════════════════
+   ORDERS
+══════════════════════════════════════════ */
+async function loadOrders() {
+  if (localMode) {
+    orders = lsGetJSON('lp_orders', []);
+  } else {
+    try {
+      var res = await SB.from('orders').select('*').order('created_at', { ascending: false });
+      orders = res.data || [];
+    } catch(e) { orders = lsGetJSON('lp_orders', []); }
+  }
+  renderOrders();
+}
+
+function renderOrders() {
+  var filter = document.getElementById('filter-status').value;
+  var list   = filter === 'all' ? orders : orders.filter(function(o){ return o.status === filter; });
+
+  document.getElementById('m-total').textContent = orders.length;
+  document.getElementById('m-new').textContent   = orders.filter(function(o){ return o.status === 'جديد'; }).length;
+  document.getElementById('m-done').textContent  = orders.filter(function(o){ return o.status === 'مكتمل'; }).length;
+
+  var el = document.getElementById('orders-list');
+  if (list.length === 0) { el.innerHTML = '<p style="text-align:center;padding:40px;color:var(--muted)">لا توجد طلبات.</p>'; return; }
+
+  el.innerHTML = list.map(function(o) {
+    var inp  = o.inputs || {};
+    var id   = String(o.id || '').slice(0,8) || 'NEW';
+    var ph   = (inp.phone || '').replace(/\D/g,'');
+    var wa   = inp.whatsapp || ph;
+    var waNum = wa.startsWith('0') ? '20'+wa.slice(1) : wa;
+    var badgeClass = { 'جديد':'badge-new','تم التواصل':'badge-contacted','مكتمل':'badge-done','ملغي':'badge-cancelled' }[o.status] || 'badge-new';
+
+    return '<div class="order-card">' +
+      '<div class="order-info">' +
+        '<h4>طلب #' + id + '</h4>' +
+        '<div class="order-meta">' +
+          '<span>👤 ' + (inp.name||'—') + '</span>' +
+          '<span>📱 ' + (inp.phone||'—') + '</span>' +
+          '<span>📅 ' + (inp.date||'—') + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="order-actions">' +
+        '<span class="badge ' + badgeClass + '">' + (o.status||'جديد') + '</span>' +
+        '<select onchange="changeStatus(\'' + o.id + '\',this.value)" style="padding:6px;border-radius:8px;border:1px solid var(--border);font-family:var(--font)">' +
+          '<option' + (o.status==='جديد'?' selected':'')          + '>جديد</option>' +
+          '<option' + (o.status==='تم التواصل'?' selected':'')    + '>تم التواصل</option>' +
+          '<option' + (o.status==='مكتمل'?' selected':'')         + '>مكتمل</option>' +
+          '<option' + (o.status==='ملغي'?' selected':'')          + '>ملغي</option>' +
+        '</select>' +
+        '<div style="display:flex;gap:6px;">' +
+          '<a href="https://wa.me/' + waNum + '" target="_blank" class="btn btn-green btn-sm">واتساب 💬</a>' +
+          '<button onclick="deleteOrder(\'' + o.id + '\')" class="btn btn-danger btn-sm">حذف 🗑</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function changeStatus(id, status) {
+  if (localMode) {
+    orders = orders.map(function(o){ return o.id==id ? Object.assign({},o,{status:status}) : o; });
+    lsSetJSON('lp_orders', orders);
+  } else {
+    try { await SB.from('orders').update({status:status}).eq('id',id); } catch(e){}
+    await loadOrders(); return;
+  }
+  renderOrders();
+  toast('✅ تم تحديث الحالة');
+}
+
+async function deleteOrder(id) {
+  if (!confirm('حذف هذا الطلب نهائياً؟')) return;
+  if (localMode) {
+    orders = orders.filter(function(o){ return o.id != id; });
+    lsSetJSON('lp_orders', orders);
+  } else {
+    try { await SB.from('orders').delete().eq('id',id); } catch(e){}
+    await loadOrders(); return;
+  }
+  renderOrders();
+  toast('🗑 تم الحذف');
+}
+
+function exportCSV() {
+  var csv = '\uFEFFID,الاسم,الموبايل,الواتساب,التاريخ,الحالة\n';
+  orders.forEach(function(o) {
+    var inp = o.inputs || {};
+    csv += '"' + String(o.id||'').slice(0,8) + '","' + (inp.name||'') + '","' + (inp.phone||'') + '","' + (inp.whatsapp||'') + '","' + (inp.date||'') + '","' + (o.status||'') + '"\n';
+  });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
+  a.download = 'orders_' + Date.now() + '.csv';
+  a.click();
+  toast('📊 تم التصدير');
+}
+
+/* ══════════════════════════════════════════
+   CONFIG (settings, sections, testimonials, faqs)
+══════════════════════════════════════════ */
+async function loadConfig() {
+  if (localMode) {
+    loadLocalConfig();
+    toast('⚠️ وضع محلي — البيانات محفوظة على الجهاز');
+    return;
+  }
+  try {
+    var res = await SB.from('page_config').select('*').eq('key','default').single();
+    if (res.error || !res.data) { loadLocalConfig(); return; }
+    configRow = res.data;
+    applyConfig(configRow);
+    toast('✅ تم تحميل الإعدادات من Supabase');
+  } catch(e) { loadLocalConfig(); }
+}
+
+function loadLocalConfig() {
+  var cfg = {
+    site_name: lsGet('lp_sitename','رسائل الحب'),
+    price: parseInt(lsGet('lp_price','190')),
+    old_price: parseInt(lsGet('lp_oldprice','380')),
+    hero_title: lsGet('lp_herotitle','احفظ {قصة حبكم} في موقع خاص'),
+    hero_desc: lsGet('lp_herodesc','كبسولة زمنية رقمية تجمع ذكرياتكم'),
+    promo_text: lsGet('lp_promo','⏰ عرض محدود — 190 جنيه بس'),
+    promo_on: lsGet('lp_promoon','1') === '1',
+    whatsapp: lsGet('lp_whatsapp','201012345678'),
+    sections: lsGetJSON('lp_sections', [
+      { id:'s1', type:'images-section', title:'الصور اللي بتحكي {أجمل لحظاتكم}', subtitle:'معرض الذكريات', desc:'', images:[{url:'',title:'',desc:''}], bottomDesc:'' },
+      { id:'s2', type:'screenshots',    title:'اسكرينات من {موبايلنا}',            subtitle:'Screenshots',   desc:'', images:[{url:'',title:'',desc:''}], bottomDesc:'' }
+    ]),
+    testimonials: lsGetJSON('lp_testimonials', [{ name:'محمد ونهى', text:'فكرة مبتكرة وأحسن بكتير من الهدايا التقليدية!', rating:5 }]),
+    faqs: lsGetJSON('lp_faqs', [{ q:'إزاي شريكي هيفتح الموقع؟', a:'بنرسلك رابط خاص وباسورد.' }]),
+    pixel_id: lsGet('lp_pixel',''),
+    capi_token: lsGet('lp_token',''),
+    test_code: lsGet('lp_testcode','')
+  };
+  applyConfig(cfg);
+}
+
+function applyConfig(cfg) {
+  // Settings tab
+  document.getElementById('s-name').value       = cfg.site_name  || '';
+  document.getElementById('s-price').value      = cfg.price      || 190;
+  document.getElementById('s-old-price').value  = cfg.old_price  || 380;
+  document.getElementById('s-hero-title').value = cfg.hero_title || '';
+  document.getElementById('s-hero-desc').value  = cfg.hero_desc  || '';
+  document.getElementById('s-promo-text').value = cfg.promo_text || '';
+  document.getElementById('s-promo-on').checked = cfg.promo_on !== false;
+  document.getElementById('s-whatsapp').value   = cfg.whatsapp   || '';
+  // Pixel tab
+  document.getElementById('fb-pixel').value = cfg.pixel_id   || '';
+  document.getElementById('fb-token').value = cfg.capi_token || '';
+  document.getElementById('fb-test').value  = cfg.test_code  || '';
+  // Collections
+  sections     = Array.isArray(cfg.sections)     ? cfg.sections     : [];
+  testimonials = Array.isArray(cfg.testimonials) ? cfg.testimonials : [];
+  faqs         = Array.isArray(cfg.faqs)         ? cfg.faqs         : [];
+  renderSections();
+  renderTestimonials();
+  renderFaqs();
+}
+
+/* ══════════════════════════════════════════
+   SETTINGS
+══════════════════════════════════════════ */
+async function saveSettings() {
+  var d = {
+    site_name:  document.getElementById('s-name').value,
+    price:      parseInt(document.getElementById('s-price').value)||190,
+    old_price:  parseInt(document.getElementById('s-old-price').value)||380,
+    hero_title: document.getElementById('s-hero-title').value,
+    hero_desc:  document.getElementById('s-hero-desc').value,
+    promo_text: document.getElementById('s-promo-text').value,
+    promo_on:   document.getElementById('s-promo-on').checked,
+    whatsapp:   document.getElementById('s-whatsapp').value
+  };
+
+  if (localMode) {
+    lsSet('lp_sitename',   d.site_name);  lsSet('lp_price',    d.price);
+    lsSet('lp_oldprice',   d.old_price);  lsSet('lp_herotitle', d.hero_title);
+    lsSet('lp_herodesc',   d.hero_desc);  lsSet('lp_promo',     d.promo_text);
+    lsSet('lp_promoon',    d.promo_on?'1':'0'); lsSet('lp_whatsapp', d.whatsapp);
+    toast('✅ تم الحفظ محلياً'); return;
+  }
+  try {
+    await SB.from('page_config').upsert(Object.assign({key:'default'}, d, {sections:sections, testimonials:testimonials, faqs:faqs}));
+    toast('✅ تم الحفظ في Supabase');
+  } catch(e) { toast('❌ خطأ: '+e.message); }
+}
+
+/* ══════════════════════════════════════════
+   SECTIONS
+══════════════════════════════════════════ */
+function renderSections() {
+  var el = document.getElementById('sections-list');
+  if (sections.length === 0) { el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:30px">لا توجد أقسام. اضغط + إضافة قسم</p>'; return; }
+  el.innerHTML = sections.map(function(sec, i) {
+    return '<div class="section-box">' +
+      '<div class="section-box-header">' +
+        '<span style="font-weight:700;color:var(--primary)">قسم: ' + (sec.title||'بلا عنوان') + '</span>' +
+        '<div style="display:flex;gap:6px;">' +
+          (i>0 ? '<button class="btn btn-secondary btn-sm" onclick="moveSection('+i+',\'up\')">↑</button>' : '') +
+          (i<sections.length-1 ? '<button class="btn btn-secondary btn-sm" onclick="moveSection('+i+',\'down\')">↓</button>' : '') +
+          '<button class="btn btn-danger btn-sm" onclick="delSection('+i+')">حذف 🗑</button>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+        '<div class="form-group"><label>العنوان (ضع الجزء الملون بين {})</label><input type="text" value="' + esc(sec.title) + '" onchange="sections['+i+'].title=this.value"></div>' +
+        '<div class="form-group"><label>العنوان الفرعي / Badge</label><input type="text" value="' + esc(sec.subtitle) + '" onchange="sections['+i+'].subtitle=this.value"></div>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+        '<div class="form-group"><label>نوع القسم</label><select onchange="sections['+i+'].type=this.value;renderSections()">' +
+          '<option value="images-section"'+(sec.type==='images-section'?' selected':'')+'>معرض صور 📸</option>' +
+          '<option value="screenshots"'+(sec.type==='screenshots'?' selected':'')+'>اسكرينات موبايل 📱</option>' +
+        '</select></div>' +
+        '<div class="form-group"><label>نص علوي (فوق الصور)</label><input type="text" value="' + esc(sec.desc) + '" onchange="sections['+i+'].desc=this.value"></div>' +
+      '</div>' +
+      '<div class="form-group"><label>نص سفلي (تحت الصور)</label><textarea rows="2" onchange="sections['+i+'].bottomDesc=this.value">' + esc(sec.bottomDesc) + '</textarea></div>' +
+      '<div style="margin-top:14px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+          '<label style="margin:0">الصور:</label>' +
+          '<button class="btn btn-secondary btn-sm" onclick="addImg('+i+')">+ إضافة صورة</button>' +
+        '</div>' +
+        (sec.images||[]).map(function(img,j){
+          return '<div class="img-entry">' +
+            '<img class="img-thumb" src="'+(img.url||'https://via.placeholder.com/90x70')+'" id="thumb-'+i+'-'+j+'">' +
+            '<div style="display:flex;flex-direction:column;gap:8px;">' +
+              '<div style="display:flex;gap:8px;">' +
+                '<input type="text" placeholder="رابط الصورة (URL)" value="'+esc(img.url)+'" onchange="sections['+i+'].images['+j+'].url=this.value;document.getElementById(\'thumb-'+i+'-'+j+'\').src=this.value||\'https://via.placeholder.com/90x70\'" style="flex:1">' +
+                '<button class="btn btn-secondary btn-sm" onclick="uploadImg('+i+','+j+')">📷 رفع</button>' +
+              '</div>' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+                '<input type="text" placeholder="عنوان الصورة" value="'+esc(img.title)+'" onchange="sections['+i+'].images['+j+'].title=this.value">' +
+                '<input type="text" placeholder="وصف الصورة" value="'+esc(img.desc)+'" onchange="sections['+i+'].images['+j+'].desc=this.value">' +
+              '</div>' +
+            '</div>' +
+            '<button class="btn btn-danger btn-sm" onclick="delImg('+i+','+j+')">🗑</button>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function esc(str) { return (str||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+function addSection() {
+  sections.push({ id:'s'+Date.now(), type:'images-section', title:'قسم جديد', subtitle:'', desc:'', images:[{url:'',title:'',desc:''}], bottomDesc:'' });
+  renderSections();
+  toast('🖼️ تم إضافة قسم جديد');
+}
+function delSection(i) { if(!confirm('حذف القسم؟'))return; sections.splice(i,1); renderSections(); toast('🗑 تم الحذف'); }
+function moveSection(i, dir) {
+  var j = dir==='up' ? i-1 : i+1;
+  if(j<0||j>=sections.length) return;
+  var tmp=sections[i]; sections[i]=sections[j]; sections[j]=tmp;
+  renderSections(); toast('⇅ تم تغيير الترتيب');
+}
+function addImg(i) { sections[i].images.push({url:'',title:'',desc:''}); renderSections(); }
+function delImg(i,j) { sections[i].images.splice(j,1); renderSections(); }
+
+async function uploadImg(secIdx, imgIdx) {
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = async function(e) {
+    var file = e.target.files[0]; if(!file) return;
+    toast('📤 جاري رفع وضغط الصورة...');
+
+    // Always try base64 first for reliability, then Supabase if available
+    function useBase64() {
+      compressAndResizeImage(file, 800, function(dataUrl) {
+        sections[secIdx].images[imgIdx].url = dataUrl;
+        renderSections();
+        toast('✅ تم رفع الصورة بنجاح!');
+      });
+    }
+
+    if (localMode || !SB) { useBase64(); return; }
+
+    try {
+      var path = Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._]/g,'_');
+      var upRes = await SB.storage.from('landing_images').upload(path, file);
+      if (upRes.error) {
+        // Bucket not found or any storage error → use base64 silently
+        console.warn('Supabase storage error, using base64:', upRes.error.message);
+        useBase64();
+        return;
+      }
+      var pub = SB.storage.from('landing_images').getPublicUrl(path);
+      sections[secIdx].images[imgIdx].url = pub.data.publicUrl;
+      renderSections();
+      toast('✅ تم الرفع لـ Supabase Storage!');
+    } catch(e) {
+      console.warn('Storage upload failed, using base64:', e);
+      useBase64();
+    }
+  };
+  inp.click();
+}
+
+async function saveSections() {
+  if (localMode) { lsSetJSON('lp_sections', sections); toast('✅ تم حفظ الأقسام محلياً'); return; }
+  try {
+    await SB.from('page_config').upsert(Object.assign({}, configRow||{}, {key:'default', sections:sections}));
+    toast('✅ تم حفظ الأقسام في Supabase');
+  } catch(e) { toast('❌ خطأ: '+e.message); }
+}
+
+/* ══════════════════════════════════════════
+   TESTIMONIALS
+══════════════════════════════════════════ */
+function renderTestimonials() {
+  var el = document.getElementById('testimonials-list');
+  el.innerHTML = testimonials.map(function(t,i){
+    return '<div class="section-box">' +
+      '<div class="section-box-header">' +
+        '<span style="font-weight:700;color:var(--primary)">شهادة '+(i+1)+'</span>' +
+        '<button class="btn btn-danger btn-sm" onclick="delTestimonial('+i+')">حذف 🗑</button>' +
+      '</div>' +
+      '<div style="display:grid;grid-template-columns:1fr 2fr 90px;gap:10px;">' +
+        '<input type="text" placeholder="الاسم" value="'+esc(t.name)+'" onchange="testimonials['+i+'].name=this.value">' +
+        '<input type="text" placeholder="نص الشهادة" value="'+esc(t.text)+'" onchange="testimonials['+i+'].text=this.value">' +
+        '<select onchange="testimonials['+i+'].rating=parseInt(this.value)">' +
+          [5,4,3,2,1].map(function(n){ return '<option value="'+n+'"'+(t.rating===n?' selected':'')+'>'+n+' ★</option>'; }).join('') +
+        '</select>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+function addTestimonial() { testimonials.push({name:'',text:'',rating:5}); renderTestimonials(); }
+function delTestimonial(i) { testimonials.splice(i,1); renderTestimonials(); }
+async function saveTestimonials() {
+  if (localMode) { lsSetJSON('lp_testimonials', testimonials); toast('✅ تم حفظ الشهادات محلياً'); return; }
+  try {
+    await SB.from('page_config').upsert(Object.assign({}, configRow||{}, {key:'default', testimonials:testimonials}));
+    toast('✅ تم حفظ الشهادات في Supabase');
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+/* ══════════════════════════════════════════
+   FAQS
+══════════════════════════════════════════ */
+function renderFaqs() {
+  var el = document.getElementById('faqs-list');
+  el.innerHTML = faqs.map(function(f,i){
+    return '<div class="section-box">' +
+      '<div class="section-box-header">' +
+        '<span style="font-weight:700;color:var(--primary)">سؤال '+(i+1)+'</span>' +
+        '<div style="display:flex;gap:6px;">' +
+          (i>0?'<button class="btn btn-secondary btn-sm" onclick="moveFaq('+i+',\'up\')">↑</button>':'')+
+          (i<faqs.length-1?'<button class="btn btn-secondary btn-sm" onclick="moveFaq('+i+',\'down\')">↓</button>':'')+
+          '<button class="btn btn-danger btn-sm" onclick="delFaq('+i+')">حذف 🗑</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="form-group"><label>السؤال</label><input type="text" value="'+esc(f.q)+'" onchange="faqs['+i+'].q=this.value"></div>' +
+      '<div class="form-group"><label>الإجابة</label><textarea rows="2" onchange="faqs['+i+'].a=this.value">'+esc(f.a)+'</textarea></div>' +
+    '</div>';
+  }).join('');
+}
+function addFaq() { faqs.push({q:'',a:''}); renderFaqs(); }
+function delFaq(i) { faqs.splice(i,1); renderFaqs(); }
+function moveFaq(i, dir) {
+  var j = dir==='up'?i-1:i+1;
+  if(j<0||j>=faqs.length) return;
+  var tmp=faqs[i]; faqs[i]=faqs[j]; faqs[j]=tmp; renderFaqs();
+}
+async function saveFaqs() {
+  if (localMode) { lsSetJSON('lp_faqs', faqs); toast('✅ تم حفظ الأسئلة محلياً'); return; }
+  try {
+    await SB.from('page_config').upsert(Object.assign({}, configRow||{}, {key:'default', faqs:faqs}));
+    toast('✅ تم حفظ الأسئلة في Supabase');
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+/* ══════════════════════════════════════════
+   PIXEL
+══════════════════════════════════════════ */
+async function savePixel() {
+  var pid = document.getElementById('fb-pixel').value.trim();
+  var tok = document.getElementById('fb-token').value.trim();
+  var tst = document.getElementById('fb-test').value.trim();
+  if (localMode) { lsSet('lp_pixel',pid); lsSet('lp_token',tok); lsSet('lp_testcode',tst); toast('✅ تم الحفظ محلياً'); return; }
+  try {
+    await SB.from('page_config').upsert(Object.assign({}, configRow||{}, {key:'default', pixel_id:pid, capi_token:tok, test_code:tst}));
+    toast('✅ تم حفظ إعدادات الـ Pixel');
+  } catch(e) { toast('❌ '+e.message); }
+}
+
+/* ══════════════════════════════════════════
+   REAL PHOTOS
+══════════════════════════════════════════ */
+var realPhotos = [];
+
+function renderRealPhotos() {
+  var el = document.getElementById('real-photos-list');
+  if (!el) return;
+  if (realPhotos.length === 0) {
+    el.innerHTML = '<p style="color:var(--muted);text-align:center;padding:30px">لا توجد صور. اضغط + إضافة صورة</p>';
+    return;
+  }
+  el.innerHTML = realPhotos.map(function(p, i) {
+    return '<div class="img-entry" style="grid-template-columns:90px 1fr auto">' +
+      '<img class="img-thumb" src="'+(p.url||'https://via.placeholder.com/90x70')+'" id="rp-thumb-'+i+'" style="height: 120px; object-fit: cover;">' +
+      '<div style="display:flex;gap:8px;align-items:center">' +
+        '<input type="text" placeholder="رابط الصورة (URL)" value="'+esc(p.url)+'" onchange="realPhotos['+i+'].url=this.value;document.getElementById(\'rp-thumb-'+i+'\').src=this.value||\'https://via.placeholder.com/90x70\'" style="flex:1">' +
+        '<button class="btn btn-secondary btn-sm" onclick="uploadRealPhoto('+i+')">📷 رفع</button>' +
+      '</div>' +
+      '<button class="btn btn-danger btn-sm" onclick="delRealPhoto('+i+')">🗑</button>' +
+    '</div>';
+  }).join('');
+}
+
+function addRealPhoto() {
+  realPhotos.push({ url: '' });
+  renderRealPhotos();
+}
+
+function delRealPhoto(i) {
+  realPhotos.splice(i, 1);
+  renderRealPhotos();
+}
+
+async function uploadRealPhoto(i) {
+  var inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'image/*';
+  inp.onchange = function(e) {
+    var file = e.target.files[0]; if (!file) return;
+    toast('📤 جاري رفع وضغط الصورة...');
+    compressAndResizeImage(file, 800, function(dataUrl) {
+      realPhotos[i].url = dataUrl;
+      renderRealPhotos();
+      toast('✅ تم رفع الصورة بنجاح!');
+    });
+  };
+  inp.click();
+}
+
+function saveRealPhotos() {
+  var title = document.getElementById('rp-section-title').value;
+  var subtitle = document.getElementById('rp-section-subtitle').value;
+  var desc = document.getElementById('rp-section-desc').value;
+
+  lsSet('lp_real_photos_title', title);
+  lsSet('lp_real_photos_subtitle', subtitle);
+  lsSet('lp_real_photos_desc', desc);
+  lsSetJSON('lp_real_photos', realPhotos);
+  
+  toast('✅ تم حفظ الصور الواقعية! ستظهر في الموقع فوراً.');
+}
+
+function loadRealPhotos() {
+  document.getElementById('rp-section-title').value = lsGet('lp_real_photos_title', 'صور واقعية من مواقع عملائنا');
+  document.getElementById('rp-section-subtitle').value = lsGet('lp_real_photos_subtitle', '📸 من عملائنا');
+  document.getElementById('rp-section-desc').value = lsGet('lp_real_photos_desc', '');
+  realPhotos = lsGetJSON('lp_real_photos', []);
+  renderRealPhotos();
+}
+
+/* ══════════════════════════════════════════
+   SITE DETAILS
+══════════════════════════════════════════ */
+function saveDetails() {
+  var title = document.getElementById('details-section-title').value;
+  var subtitle = document.getElementById('details-section-subtitle').value;
+  var text = document.getElementById('details-section-text').value;
+  
+  lsSet('lp_details_title', title);
+  lsSet('lp_details_subtitle', subtitle);
+  lsSet('lp_details_text', text);
+  
+  toast('✅ تم حفظ تفاصيل الموقع! ستظهر في الموقع فوراً.');
+}
+
+function loadDetails() {
+  document.getElementById('details-section-title').value = lsGet('lp_details_title', 'تفاصيل الموقع المميزة');
+  document.getElementById('details-section-subtitle').value = lsGet('lp_details_subtitle', '📝 مميزات وخصائص');
+  document.getElementById('details-section-text').value = lsGet('lp_details_text', 'هنا يمكنك كتابة تفاصيل مميزة عن الموقع، مثل المميزات البرمجية أو التصميم أو الهدايا الإضافية التي تقدمها مع الموقع.');
+}
+
+/* ══════════════════════════════════════════
+   THANK YOU PAGE
+══════════════════════════════════════════ */
+function saveThankYou() {
+  var title = document.getElementById('ty-title-inp').value;
+  var desc = document.getElementById('ty-desc-inp').value;
+  var step1 = document.getElementById('ty-step1-inp').value;
+  var step2 = document.getElementById('ty-step2-inp').value;
+  var step3 = document.getElementById('ty-step3-inp').value;
+  
+  lsSet('lp_thank_title', title);
+  lsSet('lp_thank_desc', desc);
+  lsSet('lp_thank_step1', step1);
+  lsSet('lp_thank_step2', step2);
+  lsSet('lp_thank_step3', step3);
+  
+  toast('✅ تم حفظ صفحة الشكر! ستظهر للعملاء فوراً.');
+}
+
+function loadThankYou() {
+  document.getElementById('ty-title-inp').value = lsGet('lp_thank_title', 'تم استلام طلبك! 🎉');
+  document.getElementById('ty-desc-inp').value = lsGet('lp_thank_desc', 'شكراً ليك! فريقنا هيتواصل معاك على الواتساب في أقرب وقت عشان نبدأ نجهز هديتك الرومانسية 💕');
+  document.getElementById('ty-step1-inp').value = lsGet('lp_thank_step1', 'هنتواصل معاك على الواتساب خلال ساعات قليلة');
+  document.getElementById('ty-step2-inp').value = lsGet('lp_thank_step2', 'هتبعتلنا الصور والرسائل والتفاصيل اللي عايزها');
+  document.getElementById('ty-step3-inp').value = lsGet('lp_thank_step3', 'في أقل من 24 ساعة موقعك هيكون جاهز! 🚀');
+}
+
+
+/* ══════════════════════════════════════════
+   STEPS
+══════════════════════════════════════════ */
+function loadSteps() {
+  var setVal = function(id, key, def) {
+    var el = document.getElementById(id);
+    if (el) el.value = lsGet(key, def);
+  };
+  setVal('steps-title-inp', 'lp_steps_title', 'ازاي بنعمل موقعك؟');
+  setVal('step1-title-inp', 'lp_step1_title', 'املأ بيانات الحجز');
+  setVal('step1-desc-inp',  'lp_step1_desc',  'ادخل اسمك ورقم هاتفك في نموذج الطلب بالأسفل.');
+  setVal('step2-title-inp', 'lp_step2_title', 'هنتواصل معاك');
+  setVal('step2-desc-inp',  'lp_step2_desc',  'خلال ساعات هنتواصل معاك على الواتساب لنأخذ منك الصور والرسالة والاسم السري.');
+  setVal('step3-title-inp', 'lp_step3_title', 'استلم موقعك');
+  setVal('step3-desc-inp',  'lp_step3_desc',  'هنجهز موقعك في أقل من 24 ساعة ونرسل لك الرابط محمي بباسورد خاص بكما.');
+}
+
+function saveSteps() {
+  var g = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
+  lsSet('lp_steps_title', g('steps-title-inp'));
+  lsSet('lp_step1_title', g('step1-title-inp')); lsSet('lp_step1_desc', g('step1-desc-inp'));
+  lsSet('lp_step2_title', g('step2-title-inp')); lsSet('lp_step2_desc', g('step2-desc-inp'));
+  lsSet('lp_step3_title', g('step3-title-inp')); lsSet('lp_step3_desc', g('step3-desc-inp'));
+  toast('✅ تم حفظ الخطوات! ستظهر في الموقع فوراً.');
+}
+
+/* ══════════════════════════════════════════
+   SECURITY
+══════════════════════════════════════════ */
+function changePassword() {
+  var cur = document.getElementById('p-current').value;
+  var nw  = document.getElementById('p-new').value;
+  var cnf = document.getElementById('p-confirm').value;
+  var saved = lsGet('lp_admin_password','admin123');
+  if (cur !== saved) { alert('كلمة المرور الحالية خاطئة'); return; }
+  if (!nw) { alert('أدخل كلمة مرور جديدة'); return; }
+  if (nw !== cnf) { alert('كلمة المرور الجديدة غير متطابقة'); return; }
+  lsSet('lp_admin_password', nw);
+  document.getElementById('p-current').value = '';
+  document.getElementById('p-new').value = '';
+  document.getElementById('p-confirm').value = '';
+  toast('✅ تم تغيير كلمة المرور بنجاح!');
+}
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+document.getElementById('login-btn').addEventListener('click', function(e){ e.preventDefault(); attemptLogin(); });
+document.getElementById('auth-pass').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); attemptLogin(); } });
+
+// Auto-login if session exists
+checkSession();
+</script>
+</body>
+</html>
