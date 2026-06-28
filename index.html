@@ -699,7 +699,7 @@ function renderConfig(cfg) {
   }
 
   // Site Details Section (تفاصيل الموقع)
-  var detSec = document.getElementById('details-section');
+  var detSecEl = document.getElementById('details-section');
   var detTitle = document.getElementById('details-title');
   var detBadge = document.getElementById('details-badge');
   var detText = document.getElementById('details-text');
@@ -708,13 +708,13 @@ function renderConfig(cfg) {
   var dSub = detSec.subtitle || cfg.details_subtitle || lsGet('lp_details_subtitle', '');
   var dText = detSec.text || cfg.details_text || lsGet('lp_details_text', '');
   
-  if (dText && detSec && detText) {
-    detSec.style.display = 'block';
+  if (dText && detSecEl && detText) {
+    detSecEl.style.display = 'block';
     if (detTitle && dTitle) detTitle.innerHTML = dTitle.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
     if (detBadge && dSub) detBadge.textContent = dSub;
     detText.textContent = dText;
-  } else if (detSec) {
-    detSec.style.display = 'none';
+  } else if (detSecEl) {
+    detSecEl.style.display = 'none';
   }
 
   // Thank you page texts
@@ -780,55 +780,52 @@ function renderConfig(cfg) {
     SB.from('page_config').select('*').eq('key','default').single().then(function(res){
       if (!res.error && res.data) {
         var sbData = res.data;
-        
-        // ── localStorage ALWAYS wins ──
-        // Build merged config: start from Supabase, then override with localStorage
         var merged = Object.assign({}, sbData);
         
-        // Price: localStorage is the source of truth (default 170, never 190 from old Supabase)
-        merged.price    = parseInt(lsGet('lp_price',    '170')) || 170;
+        // ── PRICE: localStorage ALWAYS wins (Supabase has old 190, localStorage has correct 170) ──
+        merged.price     = parseInt(lsGet('lp_price',    '170')) || 170;
         merged.old_price = parseInt(lsGet('lp_oldprice', '750')) || 750;
         
-        // Promo text
+        // Promo text: localStorage wins if set
         var lsPromo = localStorage.getItem('lp_promo');
         if (lsPromo !== null) merged.promo_text = lsPromo;
         var lsPromoOn = localStorage.getItem('lp_promoon');
         if (lsPromoOn !== null) merged.promo_on = lsPromoOn === '1';
         
-        // Hero
-        var lsHeroTitle = localStorage.getItem('lp_herotitle');
-        if (lsHeroTitle) merged.hero_title = lsHeroTitle;
-        var lsHeroDesc = localStorage.getItem('lp_herodesc');
-        if (lsHeroDesc) merged.hero_desc = lsHeroDesc;
-        
-        // Real Photos & Site Details: inject from localStorage into sections
+        // ── SECTIONS: Supabase wins for real photos & details (works on mobile) ──
+        // But fallback to localStorage if Supabase doesn't have them yet
         var sbSections = Array.isArray(sbData.sections) ? sbData.sections.slice() : [];
         
-        // Remove any old real-photos-config or details-config from Supabase (might be stale)
-        sbSections = sbSections.filter(function(s){ 
-          return s && s.type !== 'real-photos-config' && s.type !== 'details-config'; 
-        });
+        var sbHasPhotos  = sbSections.some(function(s){ return s && s.type === 'real-photos-config' && s.photos && s.photos.length > 0; });
+        var sbHasDetails = sbSections.some(function(s){ return s && s.type === 'details-config' && s.text; });
         
-        // Always inject fresh from localStorage
-        var lsPhotos = lsGetJSON('lp_real_photos', []);
-        if (lsPhotos.length > 0) {
-          sbSections.push({
-            type: 'real-photos-config',
-            photos: lsPhotos,
-            title: lsGet('lp_real_photos_title', ''),
-            subtitle: lsGet('lp_real_photos_subtitle', '📸 من عملائنا'),
-            desc: lsGet('lp_real_photos_desc', '')
-          });
+        // If Supabase doesn't have real photos, inject from localStorage (desktop fallback)
+        if (!sbHasPhotos) {
+          sbSections = sbSections.filter(function(s){ return !s || s.type !== 'real-photos-config'; });
+          var lsPhotos = lsGetJSON('lp_real_photos', []);
+          if (lsPhotos.length > 0) {
+            sbSections.push({
+              type: 'real-photos-config',
+              photos: lsPhotos,
+              title: lsGet('lp_real_photos_title', ''),
+              subtitle: lsGet('lp_real_photos_subtitle', '📸 من عملائنا'),
+              desc: lsGet('lp_real_photos_desc', '')
+            });
+          }
         }
         
-        var lsDetText = lsGet('lp_details_text', '');
-        if (lsDetText) {
-          sbSections.push({
-            type: 'details-config',
-            title: lsGet('lp_details_title', ''),
-            subtitle: lsGet('lp_details_subtitle', ''),
-            text: lsDetText
-          });
+        // If Supabase doesn't have site details, inject from localStorage (desktop fallback)
+        if (!sbHasDetails) {
+          sbSections = sbSections.filter(function(s){ return !s || s.type !== 'details-config'; });
+          var lsDetText = lsGet('lp_details_text', '');
+          if (lsDetText) {
+            sbSections.push({
+              type: 'details-config',
+              title: lsGet('lp_details_title', ''),
+              subtitle: lsGet('lp_details_subtitle', ''),
+              text: lsDetText
+            });
+          }
         }
         
         merged.sections = sbSections;
