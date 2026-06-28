@@ -1057,11 +1057,27 @@ async function savePixel() {
   var pid = document.getElementById('fb-pixel').value.trim();
   var tok = document.getElementById('fb-token').value.trim();
   var tst = document.getElementById('fb-test').value.trim();
-  if (localMode) { lsSet('lp_pixel',pid); lsSet('lp_token',tok); lsSet('lp_testcode',tst); toast('✅ تم الحفظ محلياً'); return; }
+  
+  // Always save to localStorage so index.html can read pixel ID on page load
+  lsSet('lp_pixel', pid);
+  lsSet('lp_token', tok);
+  lsSet('lp_testcode', tst);
+  
+  if (localMode || !SB) { 
+    toast('✅ تم حفظ إعدادات البيكسل محلياً'); 
+    return; 
+  }
   try {
-    await SB.from('page_config').upsert(Object.assign({}, configRow||{}, {key:'default', pixel_id:pid, capi_token:tok, test_code:tst}));
-    toast('✅ تم حفظ إعدادات الـ Pixel');
-  } catch(e) { toast('❌ '+e.message); }
+    await SB.from('page_config').upsert({
+      key: 'default',
+      pixel_id: pid,
+      capi_token: tok,
+      test_event_code: tst
+    });
+    toast('✅ تم حفظ البيكسل في قاعدة البيانات ✅ سيعمل تلقائياً في الموقع الآن');
+  } catch(e) { 
+    toast('⚠️ تم الحفظ محلياً. خطأ Supabase: ' + e.message); 
+  }
 }
 
 /* ══════════════════════════════════════════

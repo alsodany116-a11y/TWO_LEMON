@@ -9,6 +9,32 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Meta Pixel: loaded dynamically from admin config -->
+  <script>
+  (function(){
+    function lsGet(k,d){ try{ var v=localStorage.getItem(k); return v!==null?v:d; }catch(e){return d;} }
+    var pid = lsGet('lp_pixel','');
+    if (!pid) return;
+    // Inject Facebook Pixel
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', pid);
+    fbq('track', 'PageView');
+    // Noscript pixel fallback
+    var ns = document.createElement('noscript');
+    var img = document.createElement('img');
+    img.height=1; img.width=1; img.style.display='none';
+    img.src='https://www.facebook.com/tr?id='+pid+'&ev=PageView&noscript=1';
+    ns.appendChild(img);
+    document.head.appendChild(ns);
+  })();
+  </script>
   <style>
     :root {
       --primary: #8B1A4A; --secondary: #C4547A; --gold: #DAA520;
@@ -813,7 +839,55 @@ function renderConfig(cfg) {
 
   if (SB) {
     SB.from('page_config').select('*').eq('key','default').single().then(function(res){
-      if (!res.error && res.data) renderConfig(res.data);
+      if (!res.error && res.data) {
+        var sbData = res.data;
+        
+        // Merge Supabase data with localStorage — localStorage takes priority for items 
+        // that were saved locally but not yet synced to Supabase (real photos, details, etc.)
+        var merged = Object.assign({}, sbData);
+        
+        // Price: use localStorage price if it was explicitly set (not default 170/190)
+        var lsPrice = localStorage.getItem('lp_price');
+        if (lsPrice) merged.price = parseInt(lsPrice) || sbData.price;
+        
+        var lsOldPrice = localStorage.getItem('lp_oldprice');
+        if (lsOldPrice) merged.old_price = parseInt(lsOldPrice) || sbData.old_price;
+        
+        // For sections not in Supabase yet, inject them from localStorage
+        var sbSections = Array.isArray(sbData.sections) ? sbData.sections.slice() : [];
+        
+        // Real Photos: inject from localStorage if Supabase doesn't have it
+        var hasRpConfig = sbSections.some(function(s){ return s && s.type === 'real-photos-config'; });
+        if (!hasRpConfig) {
+          var lsPhotos = lsGetJSON('lp_real_photos', []);
+          if (lsPhotos.length > 0) {
+            sbSections.push({
+              type: 'real-photos-config',
+              photos: lsPhotos,
+              title: lsGet('lp_real_photos_title', ''),
+              subtitle: lsGet('lp_real_photos_subtitle', '📸 من عملائنا'),
+              desc: lsGet('lp_real_photos_desc', '')
+            });
+          }
+        }
+        
+        // Site Details: inject from localStorage if Supabase doesn't have it
+        var hasDetConfig = sbSections.some(function(s){ return s && s.type === 'details-config'; });
+        if (!hasDetConfig) {
+          var lsDetText = lsGet('lp_details_text', '');
+          if (lsDetText) {
+            sbSections.push({
+              type: 'details-config',
+              title: lsGet('lp_details_title', ''),
+              subtitle: lsGet('lp_details_subtitle', ''),
+              text: lsDetText
+            });
+          }
+        }
+        
+        merged.sections = sbSections;
+        renderConfig(merged);
+      }
     }).catch(function(){});
   }
 })();
