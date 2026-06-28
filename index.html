@@ -245,7 +245,7 @@
 <header class="navbar">
   <div class="container nav-container">
     <a href="#" class="brand-logo">رسائل<span>الحب</span></a>
-    <a href="#order-section" class="btn btn-primary" id="nav-action-btn">احجز الآن — 190 جنيه</a>
+    <a href="#order-section" class="btn btn-primary" id="nav-action-btn">احجز الآن — 170 جنيه</a>
   </div>
 </header>
 
@@ -257,7 +257,7 @@
       <span class="hero-tag" id="hero-tag-badge">🎁 هدية رومانسية غير متوقعة لشريك حياتك</span>
       <h1 class="hero-title" id="hero-main-title">هدية <span class="text-highlight">لا تُنسى</span> لمن تحب</h1>
       <p class="hero-desc" id="hero-description">موقع ويب رومانسي سري محمي بكلمة سر خاصة بكما فقط، يحتوي على رسائل عاطفية، معرض صور، مشغل أغاني، وعداد لحساب الأيام.</p>
-      <span class="price-badge" id="hero-price-badge">190 جنيه فقط</span>
+      <span class="price-badge" id="hero-price-badge">170 جنيه فقط</span>
       <div class="hero-buttons">
         <a href="#order-section" class="btn btn-primary">احجز هديتك دلوقتي ❤️</a>
       </div>
@@ -269,7 +269,7 @@
 </section>
 
 <!-- ALERT BANNER -->
-<div class="alert-banner" id="promo-banner-text">⏰ عرض محدود — أول 50 طلب بسعر 190 جنيه بس</div>
+<div class="alert-banner" id="promo-banner-text">⏰ عرض محدود — أول 50 طلب بسعر 170 جنيه بس</div>
 
 <!-- STORY -->
 <section class="story-section">
@@ -404,8 +404,8 @@
     <h2 class="cta-title">ابدأ تصميم كبسولتك الآن</h2>
     <p class="cta-subtitle">املأ البيانات وسيقوم فريقنا بالتواصل معك وتصميم هديتك فوراً</p>
     <div class="pricing-container">
-      <span class="old-price" id="pricing-old-price">٣٨٠ جنيه</span>
-      <span class="new-price" id="pricing-new-price">١٩٠ جنيه فقط</span>
+      <span class="old-price" id="pricing-old-price">٧٥٠ جنيه</span>
+      <span class="new-price" id="pricing-new-price">١٧٠ جنيه فقط</span>
     </div>
     <form class="order-form" id="order-form">
       <div class="form-group">
@@ -566,7 +566,13 @@ window.carouselGoto = carouselGoto; window.carouselNext = carouselNext; window.c
     var itemsHtml = validPhotos.map(function(p){
       return '<div class="real-photo-item"><img src="' + p.url + '" alt="صورة واقعية" loading="lazy"></div>';
     }).join('');
-    rpGrid.innerHTML = itemsHtml + itemsHtml + itemsHtml;
+    if (validPhotos.length === 1) {
+      rpGrid.innerHTML = itemsHtml;
+      rpGrid.style.animation = 'none';
+    } else {
+      rpGrid.innerHTML = itemsHtml + itemsHtml + itemsHtml;
+      rpGrid.style.animation = '';
+    }
   }
 
   // Site Details Section (instantly loaded)
@@ -601,52 +607,42 @@ window.carouselGoto = carouselGoto; window.carouselNext = carouselNext; window.c
     } else {
       var cId = 'c-'+cc++;
       var imgs = (sec.images||[]).filter(function(i){ return i&&i.url; });
-      var slides = imgs.map(function(img){ return '<div class="carousel-slide"><img src="'+img.url+'" alt="'+(img.title||'')+'" loading="lazy">'+(img.title?'<div class="slide-caption-top">'+img.title+'</div>':'')+(img.desc?'<div class="slide-caption-bottom">'+img.desc+'</div>':'')+'</div>'; }).join('');
-      var dots = imgs.map(function(_,i){ return '<button class="carousel-dot'+(i===0?' active':'')+'" onclick="carouselGoto(\''+cId+'\','+i+')"></button>'; }).join('');
-      html += '<section class="slider-section"><div class="container"><div class="section-title-wrapper"><span class="section-badge">'+(sec.subtitle||'لقطات شاشة 📱')+'</span><h2 class="section-title">'+rawTitle+'</h2></div>'+(sec.desc?'<p class="slider-desc-top">'+sec.desc+'</p>':'')+'<div class="carousel-outer"><button class="carousel-btn carousel-btn-prev" onclick="carouselPrev(\''+cId+'\')">&#8250;</button><button class="carousel-btn carousel-btn-next" onclick="carouselNext(\''+cId+'\')">&#8249;</button><div class="carousel-track-wrap"><div class="carousel-track" id="'+cId+'-track">'+(slides||'<div class="carousel-slide" style="background:#111;min-height:250px;display:flex;align-items:center;justify-content:center;color:#aaa">أضف اسكرينات من لوحة التحكم</div>')+'</div></div><div class="carousel-dots" id="'+cId+'-dots">'+dots+'</div></div>'+(sec.bottomDesc?'<div class="slider-bottom-desc">'+sec.bottomDesc+'</div>':'')+'</div></section>';
-      setTimeout(function(){ initCarousel(cId, imgs.length); }, 300);
-    }
-  });
-  if (html) container.innerHTML = html;
-})();
-
-/* ── SUPABASE + RENDER ── */
-var SB = null;
-try { if (window.supabase) SB = window.supabase.createClient('https://kfuwvgsglmqothjubvou.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdXd2Z3NnbG1xb3RoanVidm91Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MDYzNTUsImV4cCI6MjA5ODA4MjM1NX0.mn3ezgwYMoKFlmG8kkErcZ8tNATpQr7lKeTf6R8Zg0A'); } catch(e) {}
-
-function lsGet(k,def){ try{var v=localStorage.getItem(k);return v!==null?v:def;}catch(e){return def;} }
-function lsGetJSON(k,def){ try{var v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;} }
-
-function renderConfig(cfg) {
+      var slides = imgs.map(function(img)function renderConfig(cfg) {
   if (!cfg) return;
-  var price = parseInt(cfg.price)||190;
   
-  // Find hero section details if they exist in the sections JSONB
+  // Find custom config sections inside the global `sections` JSONB column
   var heroSec = (cfg.sections || []).find(function(s){ return s && s.type === 'hero'; }) || {};
+  var rpSec = (cfg.sections || []).find(function(s){ return s && s.type === 'real-photos-config'; }) || {};
+  var detSec = (cfg.sections || []).find(function(s){ return s && s.type === 'details-config'; }) || {};
+  var tySec = (cfg.sections || []).find(function(s){ return s && s.type === 'thank-you-config'; }) || {};
   
-  var oldPrice = parseInt(cfg.old_price||cfg.oldPrice||heroSec.old_price)||(price*2);
+  var price = parseInt(cfg.price)||170;
+  var oldPrice = parseInt(cfg.old_price||cfg.oldPrice||heroSec.old_price)||750;
   
   // Prices
   document.getElementById('nav-action-btn').textContent = 'احجز الآن — ' + price + ' جنيه';
   document.getElementById('pricing-old-price').textContent = oldPrice + ' جنيه';
   document.getElementById('pricing-new-price').textContent = price + ' جنيه فقط';
   document.getElementById('hero-price-badge').textContent = price + ' جنيه فقط';
+  
   // Promo
   var promoOn = cfg.promo_on !== undefined ? cfg.promo_on : (cfg.promo_toggle !== false);
   var banner = document.getElementById('promo-banner-text');
   if (promoOn !== false) {
-    var text = cfg.promo_text || '⏰ عرض محدود — أول 50 طلب بسعر 190 جنيه بس';
-    text = text.replace(/190/g, price); // Dynamically swap 190 with the new price
+    var text = cfg.promo_text || '⏰ عرض محدود — أول 50 طلب بسعر 170 جنيه بس';
+    text = text.replace(/190/g, price).replace(/170/g, price); // Dynamically swap price
     banner.textContent = text;
     banner.style.display = 'block';
   } else {
     banner.style.display = 'none';
   }
+  
   // Hero
   var hTitle = cfg.hero_title || heroSec.title;
   var hDesc = cfg.hero_desc || heroSec.subtitle;
   if (hTitle) document.getElementById('hero-main-title').innerHTML = hTitle.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
   if (hDesc) document.getElementById('hero-description').textContent = hDesc;
+  
   // Steps
   if (cfg.steps_title) document.getElementById('steps-title').textContent = cfg.steps_title;
   if (cfg.step1_title) document.getElementById('step1-title').textContent = cfg.step1_title;
@@ -655,6 +651,7 @@ function renderConfig(cfg) {
   if (cfg.step2_desc)  document.getElementById('step2-desc').textContent  = cfg.step2_desc;
   if (cfg.step3_title) document.getElementById('step3-title').textContent = cfg.step3_title;
   if (cfg.step3_desc)  document.getElementById('step3-desc').textContent  = cfg.step3_desc;
+  
   // Testimonials
   var tests = Array.isArray(cfg.testimonials) ? cfg.testimonials : lsGetJSON('lp_testimonials',[{name:'محمد ونهى',text:'فكرة مبتكرة وأحسن بكتير من الهدايا التقليدية!',rating:5}]);
   var tc = document.getElementById('testimonials-container');
@@ -664,6 +661,7 @@ function renderConfig(cfg) {
     for(var i=0;i<(t.rating||5);i++) stars += '★';
     return '<div class="testimonial-card"><div class="stars">'+stars+'</div><p class="testimonial-text">"'+(t.text||'')+(t.source?'<br><small style="opacity:.6">— '+t.source+'</small>':'')+'"</p><div class="testimonial-name">'+( t.name||'عميل')+'</div></div>';
   }).join('');
+  
   // FAQs
   var faqs = Array.isArray(cfg.faqs) ? cfg.faqs : lsGetJSON('lp_faqs',[{q:'إزاي شريكي هيفتح الموقع؟',a:'بنرسلك رابط خاص وباسورد بتختاروه سوا.'}]);
   var fc = document.getElementById('faq-container');
@@ -671,24 +669,22 @@ function renderConfig(cfg) {
     if (!f) return '';
     return '<div class="faq-item" id="faq-'+i+'"><div class="faq-question" onclick="toggleFaq(this)"><span>'+(f.q||'')+'</span><div class="faq-arrow">▼</div></div><div class="faq-answer"><div class="faq-answer-inner">'+(f.a||'')+'</div></div></div>';
   }).join('');
+  
   // Real photos (vertical 9:16 grid with top/bottom text boxes)
-  var rp = Array.isArray(cfg.real_photos) ? cfg.real_photos : lsGetJSON('lp_real_photos',[]);
-  var validRp = rp.filter(function(p){ return p&&p.url; });
-  var rpSec = document.getElementById('real-photos-section');
+  var rp = rpSec.photos || cfg.real_photos || lsGetJSON('lp_real_photos', []);
+  var validRp = rp.filter(function(p){ return p && p.url; });
+  var rpSecEl = document.getElementById('real-photos-section');
   var rpGrid = document.getElementById('real-photos-grid');
-  if (validRp.length > 0 && rpSec && rpGrid) {
-    rpSec.style.display = 'block';
+  if (validRp.length > 0 && rpSecEl && rpGrid) {
+    rpSecEl.style.display = 'block';
     
     // Custom Titles/Badges
     var rpBadge = document.getElementById('real-photos-badge');
-    var rpTitle = document.getElementById('real-photos-title');
-    var rpSub = cfg.real_photos_subtitle || lsGet('lp_real_photos_subtitle', '📸 من عملائنا');
-    var rpT = cfg.real_photos_title || lsGet('lp_real_photos_title', 'صور <span class="text-highlight">واقعية</span> من مواقع عملائنا');
+    var rpSub = rpSec.subtitle || cfg.real_photos_subtitle || lsGet('lp_real_photos_subtitle', '📸 من عملائنا');
     if (rpBadge) rpBadge.textContent = rpSub;
-    if (rpTitle) rpTitle.innerHTML = rpT.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
 
     // Top box
-    var topTxt = cfg.real_photos_top_text || lsGet('lp_real_photos_title', '');
+    var topTxt = rpSec.title || cfg.real_photos_title || lsGet('lp_real_photos_title', '');
     var topBox = document.getElementById('real-photos-top-box');
     if (topTxt && topBox) {
       topBox.style.display = 'block';
@@ -698,7 +694,7 @@ function renderConfig(cfg) {
     }
     
     // Bottom box
-    var bottomTxt = cfg.real_photos_desc || lsGet('lp_real_photos_desc', '');
+    var bottomTxt = rpSec.desc || cfg.real_photos_desc || lsGet('lp_real_photos_desc', '');
     var bottomBox = document.getElementById('real-photos-bottom-box');
     if (bottomTxt && bottomBox) {
       bottomBox.style.display = 'block';
@@ -708,9 +704,17 @@ function renderConfig(cfg) {
     }
 
     var itemsHtml = validRp.map(function(p){ return '<div class="real-photo-item"><img src="'+p.url+'" alt="صورة واقعية" loading="lazy"></div>'; }).join('');
-    rpGrid.innerHTML = itemsHtml + itemsHtml + itemsHtml;
-  } else if (rpSec) {
-    rpSec.style.display = 'none';
+    
+    // Fix: If 1 image, don't repeat it and disable scrolling animation
+    if (validRp.length === 1) {
+      rpGrid.innerHTML = itemsHtml;
+      rpGrid.style.animation = 'none';
+    } else {
+      rpGrid.innerHTML = itemsHtml + itemsHtml + itemsHtml;
+      rpGrid.style.animation = ''; // Enable marquee scroll
+    }
+  } else if (rpSecEl) {
+    rpSecEl.style.display = 'none';
   }
 
   // Site Details Section (تفاصيل الموقع)
@@ -719,9 +723,9 @@ function renderConfig(cfg) {
   var detBadge = document.getElementById('details-badge');
   var detText = document.getElementById('details-text');
   
-  var dTitle = cfg.details_title || lsGet('lp_details_title', '');
-  var dSub = cfg.details_subtitle || lsGet('lp_details_subtitle', '');
-  var dText = cfg.details_text || lsGet('lp_details_text', '');
+  var dTitle = detSec.title || cfg.details_title || lsGet('lp_details_title', '');
+  var dSub = detSec.subtitle || cfg.details_subtitle || lsGet('lp_details_subtitle', '');
+  var dText = detSec.text || cfg.details_text || lsGet('lp_details_text', '');
   
   if (dText && detSec && detText) {
     detSec.style.display = 'block';
@@ -739,11 +743,11 @@ function renderConfig(cfg) {
     var tySub = tyPage.querySelector('.ty-sub');
     var tySteps = tyPage.querySelectorAll('.ty-step p');
     
-    var tTitle = cfg.thank_title || lsGet('lp_thank_title', 'تم استلام طلبك! 🎉');
-    var tDesc = cfg.thank_desc || lsGet('lp_thank_desc', 'شكراً ليك! فريقنا هيتواصل معاك على الواتساب في أقرب وقت عشان نبدأ نجهز هديتك الرومانسية 💕');
-    var tS1 = cfg.thank_step1 || lsGet('lp_thank_step1', 'هنتواصل معاك على الواتساب خلال ساعات قليلة');
-    var tS2 = cfg.thank_step2 || lsGet('lp_thank_step2', 'هتبعتلنا الصور والرسائل والتفاصيل اللي عايزها');
-    var tS3 = cfg.thank_step3 || lsGet('lp_thank_step3', 'في أقل من 24 ساعة موقعك هيكون جاهز! 🚀');
+    var tTitle = tySec.title || cfg.thank_title || lsGet('lp_thank_title', 'تم استلام طلبك! 🎉');
+    var tDesc = tySec.desc || cfg.thank_desc || lsGet('lp_thank_desc', 'شكراً ليك! فريقنا هيتواصل معاك على الواتساب في أقرب وقت عشان نبدأ نجهز هديتك الرومانسية 💕');
+    var tS1 = tySec.step1 || cfg.thank_step1 || lsGet('lp_thank_step1', 'هنتواصل معاك على الواتساب خلال ساعات قليلة');
+    var tS2 = tySec.step2 || cfg.thank_step2 || lsGet('lp_thank_step2', 'هتبعتلنا الصور والرسائل والتفاصيل اللي عايزها');
+    var tS3 = tySec.step3 || cfg.thank_step3 || lsGet('lp_thank_step3', 'في أقل من 24 ساعة موقعك هيكون جاهز! 🚀');
     
     if (tyTitle) tyTitle.textContent = tTitle;
     if (tySub) tySub.textContent = tDesc;
@@ -758,9 +762,9 @@ function renderConfig(cfg) {
 // Load config (local first, then Supabase)
 (function() {
   var localCfg = {
-    price: parseInt(lsGet('lp_price','190')),
-    old_price: parseInt(lsGet('lp_oldprice','380')),
-    promo_text: lsGet('lp_promo','⏰ عرض محدود — أول 50 طلب بسعر 190 جنيه بس'),
+    price: parseInt(lsGet('lp_price','170')),
+    old_price: parseInt(lsGet('lp_oldprice','750')),
+    promo_text: lsGet('lp_promo','⏰ عرض محدود — أول 50 طلب بسعر 170 جنيه بس'),
     promo_on: lsGet('lp_promoon','1')==='1',
     hero_title: lsGet('lp_herotitle',''),
     hero_desc: lsGet('lp_herodesc',''),

@@ -654,11 +654,11 @@ async function loadConfig() {
 function loadLocalConfig() {
   var cfg = {
     site_name: lsGet('lp_sitename','رسائل الحب'),
-    price: parseInt(lsGet('lp_price','190')),
-    old_price: parseInt(lsGet('lp_oldprice','380')),
+    price: parseInt(lsGet('lp_price','170')),
+    old_price: parseInt(lsGet('lp_oldprice','750')),
     hero_title: lsGet('lp_herotitle','احفظ {قصة حبكم} في موقع خاص'),
     hero_desc: lsGet('lp_herodesc','كبسولة زمنية رقمية تجمع ذكرياتكم'),
-    promo_text: lsGet('lp_promo','⏰ عرض محدود — 190 جنيه بس'),
+    promo_text: lsGet('lp_promo','⏰ عرض محدود — 170 جنيه بس'),
     promo_on: lsGet('lp_promoon','1') === '1',
     whatsapp: lsGet('lp_whatsapp','201012345678'),
     sections: lsGetJSON('lp_sections', [
@@ -675,12 +675,21 @@ function loadLocalConfig() {
 }
 
 function applyConfig(cfg) {
-  var heroSec = (cfg.sections || []).find(function(s){ return s && s.type === 'hero'; }) || {};
+  // Collections
+  sections     = Array.isArray(cfg.sections)     ? cfg.sections     : [];
+  testimonials = Array.isArray(cfg.testimonials) ? cfg.testimonials : [];
+  faqs         = Array.isArray(cfg.faqs)         ? cfg.faqs         : [];
+
+  var heroSec = sections.find(function(s){ return s && s.type === 'hero'; }) || {};
+  var rpSec = sections.find(function(s){ return s && s.type === 'real-photos-config'; }) || {};
+  var detSec = sections.find(function(s){ return s && s.type === 'details-config'; }) || {};
+  var tySec = sections.find(function(s){ return s && s.type === 'thank-you-config'; }) || {};
+  var stepsSec = sections.find(function(s){ return s && s.type === 'steps-config'; }) || {};
 
   // Settings tab
   document.getElementById('s-name').value       = cfg.site_name  || '';
-  document.getElementById('s-price').value      = cfg.price      || 190;
-  document.getElementById('s-old-price').value  = cfg.old_price  || heroSec.old_price || 380;
+  document.getElementById('s-price').value      = cfg.price      || 170;
+  document.getElementById('s-old-price').value  = cfg.old_price  || heroSec.old_price || 750;
   document.getElementById('s-hero-title').value = cfg.hero_title || heroSec.title || '';
   document.getElementById('s-hero-desc').value  = cfg.hero_desc  || heroSec.subtitle || '';
   document.getElementById('s-promo-text').value = cfg.promo_text || '';
@@ -691,11 +700,38 @@ function applyConfig(cfg) {
   document.getElementById('fb-pixel').value = cfg.pixel_id   || '';
   document.getElementById('fb-token').value = cfg.capi_token || '';
   document.getElementById('fb-test').value  = cfg.test_code  || '';
-  
-  // Collections
-  sections     = Array.isArray(cfg.sections)     ? cfg.sections     : [];
-  testimonials = Array.isArray(cfg.testimonials) ? cfg.testimonials : [];
-  faqs         = Array.isArray(cfg.faqs)         ? cfg.faqs         : [];
+
+  // Real Photos Tab
+  realPhotos = rpSec.photos || lsGetJSON('lp_real_photos', []);
+  document.getElementById('rp-section-title').value = rpSec.title || lsGet('lp_real_photos_title', 'صور واقعية من مواقع عملائنا');
+  document.getElementById('rp-section-subtitle').value = rpSec.subtitle || lsGet('lp_real_photos_subtitle', '📸 من عملائنا');
+  document.getElementById('rp-section-desc').value = rpSec.desc || lsGet('lp_real_photos_desc', '');
+  renderRealPhotos();
+
+  // Site Details Tab
+  document.getElementById('details-section-title').value = detSec.title || lsGet('lp_details_title', 'تفاصيل الموقع المميزة');
+  document.getElementById('details-section-subtitle').value = detSec.subtitle || lsGet('lp_details_subtitle', '📝 مميزات وخصائص');
+  document.getElementById('details-section-text').value = detSec.text || lsGet('lp_details_text', 'هنا يمكنك كتابة تفاصيل مميزة عن الموقع...');
+
+  // Thank You Tab
+  document.getElementById('ty-title-inp').value = tySec.title || lsGet('lp_thank_title', 'تم استلام طلبك! 🎉');
+  document.getElementById('ty-desc-inp').value = tySec.desc || lsGet('lp_thank_desc', 'شكراً ليك! فريقنا هيتواصل معاك على الواتساب في أقرب وقت عشان نبدأ نجهز هديتك الرومانسية 💕');
+  document.getElementById('ty-step1-inp').value = tySec.step1 || lsGet('lp_thank_step1', 'هنتواصل معاك على الواتساب خلال ساعات قليلة');
+  document.getElementById('ty-step2-inp').value = tySec.step2 || lsGet('lp_thank_step2', 'هتبعتلنا الصور والرسائل والتفاصيل اللي عايزها');
+  document.getElementById('ty-step3-inp').value = tySec.step3 || lsGet('lp_thank_step3', 'في أقل من 24 ساعة موقعك هيكون جاهز! 🚀');
+
+  // Steps Tab
+  var setVal = function(id, val, localKey, def) {
+    var el = document.getElementById(id);
+    if (el) el.value = val || lsGet(localKey, def);
+  };
+  setVal('steps-title-inp', stepsSec.steps_title, 'lp_steps_title', 'ازاي بنعمل موقعك؟');
+  setVal('step1-title-inp', stepsSec.step1_title, 'lp_step1_title', 'املأ بيانات الحجز');
+  setVal('step1-desc-inp',  stepsSec.step1_desc,  'lp_step1_desc',  'ادخل اسمك ورقم هاتفك في نموذج الطلب بالأسفل.');
+  setVal('step2-title-inp', stepsSec.step2_title, 'lp_step2_title', 'هنتواصل معاك');
+  setVal('step2-desc-inp',  stepsSec.step2_desc,  'lp_step2_desc',  'خلال ساعات هنتواصل معاك على الواتساب لنأخذ منك الصور والرسالة والاسم السري.');
+  setVal('step3-title-inp', stepsSec.step3_title, 'lp_step3_title', 'استلم موقعك');
+  setVal('step3-desc-inp',  stepsSec.step3_desc,  'lp_step3_desc',  'هنجهز موقعك في أقل من 24 ساعة ونرسل لك الرابط محمي بباسورد خاص بكما.');
   
   renderSections();
   renderTestimonials();
@@ -705,11 +741,91 @@ function applyConfig(cfg) {
 /* ══════════════════════════════════════════
    SETTINGS
 ══════════════════════════════════════════ */
+async function syncAllToSupabase() {
+  if (localMode || !SB) return;
+  
+  // Update custom sections inside global `sections` array
+  // 1. Hero
+  var heroSec = sections.find(function(s){ return s && s.type === 'hero'; });
+  if (!heroSec) {
+    heroSec = { id: 'hero', type: 'hero', tag: '🎁 هدية رومانسية غير متوقعة لشريك حياتك' };
+    sections.unshift(heroSec);
+  }
+  heroSec.title = document.getElementById('s-hero-title').value;
+  heroSec.subtitle = document.getElementById('s-hero-desc').value;
+  heroSec.old_price = parseInt(document.getElementById('s-old-price').value)||750;
+
+  // 2. Real Photos
+  var rpSec = sections.find(function(s){ return s && s.type === 'real-photos-config'; });
+  if (!rpSec) {
+    rpSec = { id: 'rp-config', type: 'real-photos-config' };
+    sections.push(rpSec);
+  }
+  rpSec.photos = realPhotos;
+  rpSec.title = document.getElementById('rp-section-title').value;
+  rpSec.subtitle = document.getElementById('rp-section-subtitle').value;
+  rpSec.desc = document.getElementById('rp-section-desc').value;
+  
+  // 3. Site Details
+  var detSec = sections.find(function(s){ return s && s.type === 'details-config'; });
+  if (!detSec) {
+    detSec = { id: 'det-config', type: 'details-config' };
+    sections.push(detSec);
+  }
+  detSec.title = document.getElementById('details-section-title').value;
+  detSec.subtitle = document.getElementById('details-section-subtitle').value;
+  detSec.text = document.getElementById('details-section-text').value;
+  
+  // 4. Thank You Page
+  var tySec = sections.find(function(s){ return s && s.type === 'thank-you-config'; });
+  if (!tySec) {
+    tySec = { id: 'ty-config', type: 'thank-you-config' };
+    sections.push(tySec);
+  }
+  tySec.title = document.getElementById('ty-title-inp').value;
+  tySec.desc = document.getElementById('ty-desc-inp').value;
+  tySec.step1 = document.getElementById('ty-step1-inp').value;
+  tySec.step2 = document.getElementById('ty-step2-inp').value;
+  tySec.step3 = document.getElementById('ty-step3-inp').value;
+  
+  // 5. Steps config
+  var stepsSec = sections.find(function(s){ return s && s.type === 'steps-config'; });
+  if (!stepsSec) {
+    stepsSec = { id: 'steps-config', type: 'steps-config' };
+    sections.push(stepsSec);
+  }
+  stepsSec.steps_title = document.getElementById('steps-title-inp') ? document.getElementById('steps-title-inp').value : '';
+  stepsSec.step1_title = document.getElementById('step1-title-inp') ? document.getElementById('step1-title-inp').value : '';
+  stepsSec.step1_desc  = document.getElementById('step1-desc-inp')  ? document.getElementById('step1-desc-inp').value : '';
+  stepsSec.step2_title = document.getElementById('step2-title-inp') ? document.getElementById('step2-title-inp').value : '';
+  stepsSec.step2_desc  = document.getElementById('step2-desc-inp')  ? document.getElementById('step2-desc-inp').value : '';
+  stepsSec.step3_title = document.getElementById('step3-title-inp') ? document.getElementById('step3-title-inp').value : '';
+  stepsSec.step3_desc  = document.getElementById('step3-desc-inp')  ? document.getElementById('step3-desc-inp').value : '';
+
+  try {
+    var dbData = {
+      key: 'default',
+      site_name: document.getElementById('s-name').value,
+      price: parseInt(document.getElementById('s-price').value)||170,
+      promo_text: document.getElementById('s-promo-text').value,
+      promo_toggle: document.getElementById('s-promo-on').checked,
+      support_whatsapp: document.getElementById('s-whatsapp').value,
+      sections: sections,
+      testimonials: testimonials,
+      faqs: faqs
+    };
+    await SB.from('page_config').upsert(dbData);
+  } catch(e) {
+    console.warn('Supabase sync failed:', e);
+    throw e;
+  }
+}
+
 async function saveSettings() {
   var d = {
     site_name:  document.getElementById('s-name').value,
-    price:      parseInt(document.getElementById('s-price').value)||190,
-    old_price:  parseInt(document.getElementById('s-old-price').value)||380,
+    price:      parseInt(document.getElementById('s-price').value)||170,
+    old_price:  parseInt(document.getElementById('s-old-price').value)||750,
     hero_title: document.getElementById('s-hero-title').value,
     hero_desc:  document.getElementById('s-hero-desc').value,
     promo_text: document.getElementById('s-promo-text').value,
@@ -743,20 +859,8 @@ async function saveSettings() {
     return;
   }
   try {
-    // Only send valid columns to Supabase database schema to prevent error
-    var dbData = {
-      key: 'default',
-      site_name: d.site_name,
-      price: d.price,
-      promo_text: d.promo_text,
-      promo_toggle: d.promo_on,
-      support_whatsapp: d.whatsapp,
-      sections: sections,
-      testimonials: testimonials,
-      faqs: faqs
-    };
-    await SB.from('page_config').upsert(dbData);
-    toast('✅ تم الحفظ بنجاح في قاعدة البيانات');
+    await syncAllToSupabase();
+    toast('✅ تم الحفظ بنجاح في قاعدة البيانات (Supabase)');
   } catch(e) { 
     toast('❌ خطأ في الحفظ: ' + e.message); 
   }
@@ -1009,7 +1113,7 @@ async function uploadRealPhoto(i) {
   inp.click();
 }
 
-function saveRealPhotos() {
+async function saveRealPhotos() {
   var title = document.getElementById('rp-section-title').value;
   var subtitle = document.getElementById('rp-section-subtitle').value;
   var desc = document.getElementById('rp-section-desc').value;
@@ -1019,7 +1123,12 @@ function saveRealPhotos() {
   lsSet('lp_real_photos_desc', desc);
   lsSetJSON('lp_real_photos', realPhotos);
   
-  toast('✅ تم حفظ الصور الواقعية! ستظهر في الموقع فوراً.');
+  try {
+    await syncAllToSupabase();
+    toast('✅ تم حفظ الصور الواقعية في قاعدة البيانات!');
+  } catch(e) {
+    toast('⚠️ حفظ الصور محلياً. خطأ مزامنة: ' + e.message);
+  }
 }
 
 function loadRealPhotos() {
@@ -1033,7 +1142,7 @@ function loadRealPhotos() {
 /* ══════════════════════════════════════════
    SITE DETAILS
 ══════════════════════════════════════════ */
-function saveDetails() {
+async function saveDetails() {
   var title = document.getElementById('details-section-title').value;
   var subtitle = document.getElementById('details-section-subtitle').value;
   var text = document.getElementById('details-section-text').value;
@@ -1042,7 +1151,12 @@ function saveDetails() {
   lsSet('lp_details_subtitle', subtitle);
   lsSet('lp_details_text', text);
   
-  toast('✅ تم حفظ تفاصيل الموقع! ستظهر في الموقع فوراً.');
+  try {
+    await syncAllToSupabase();
+    toast('✅ تم حفظ تفاصيل الموقع في قاعدة البيانات!');
+  } catch(e) {
+    toast('⚠️ تم الحفظ محلياً. خطأ مزامنة: ' + e.message);
+  }
 }
 
 function loadDetails() {
@@ -1054,7 +1168,7 @@ function loadDetails() {
 /* ══════════════════════════════════════════
    THANK YOU PAGE
 ══════════════════════════════════════════ */
-function saveThankYou() {
+async function saveThankYou() {
   var title = document.getElementById('ty-title-inp').value;
   var desc = document.getElementById('ty-desc-inp').value;
   var step1 = document.getElementById('ty-step1-inp').value;
@@ -1067,7 +1181,12 @@ function saveThankYou() {
   lsSet('lp_thank_step2', step2);
   lsSet('lp_thank_step3', step3);
   
-  toast('✅ تم حفظ صفحة الشكر! ستظهر للعملاء فوراً.');
+  try {
+    await syncAllToSupabase();
+    toast('✅ تم حفظ صفحة الشكر في قاعدة البيانات!');
+  } catch(e) {
+    toast('⚠️ تم الحفظ محلياً. خطأ مزامنة: ' + e.message);
+  }
 }
 
 function loadThankYou() {
@@ -1096,13 +1215,19 @@ function loadSteps() {
   setVal('step3-desc-inp',  'lp_step3_desc',  'هنجهز موقعك في أقل من 24 ساعة ونرسل لك الرابط محمي بباسورد خاص بكما.');
 }
 
-function saveSteps() {
+async function saveSteps() {
   var g = function(id) { var el = document.getElementById(id); return el ? el.value : ''; };
   lsSet('lp_steps_title', g('steps-title-inp'));
   lsSet('lp_step1_title', g('step1-title-inp')); lsSet('lp_step1_desc', g('step1-desc-inp'));
   lsSet('lp_step2_title', g('step2-title-inp')); lsSet('lp_step2_desc', g('step2-desc-inp'));
   lsSet('lp_step3_title', g('step3-title-inp')); lsSet('lp_step3_desc', g('step3-desc-inp'));
-  toast('✅ تم حفظ الخطوات! ستظهر في الموقع فوراً.');
+  
+  try {
+    await syncAllToSupabase();
+    toast('✅ تم حفظ الخطوات في قاعدة البيانات!');
+  } catch(e) {
+    toast('⚠️ تم الحفظ محلياً. خطأ مزامنة: ' + e.message);
+  }
 }
 
 /* ══════════════════════════════════════════
