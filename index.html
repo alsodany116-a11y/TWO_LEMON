@@ -620,7 +620,12 @@ function lsGetJSON(k,def){ try{var v=localStorage.getItem(k);return v?JSON.parse
 function renderConfig(cfg) {
   if (!cfg) return;
   var price = parseInt(cfg.price)||190;
-  var oldPrice = parseInt(cfg.old_price||cfg.oldPrice)||(price*2);
+  
+  // Find hero section details if they exist in the sections JSONB
+  var heroSec = (cfg.sections || []).find(function(s){ return s && s.type === 'hero'; }) || {};
+  
+  var oldPrice = parseInt(cfg.old_price||cfg.oldPrice||heroSec.old_price)||(price*2);
+  
   // Prices
   document.getElementById('nav-action-btn').textContent = 'احجز الآن — ' + price + ' جنيه';
   document.getElementById('pricing-old-price').textContent = oldPrice + ' جنيه';
@@ -638,8 +643,10 @@ function renderConfig(cfg) {
     banner.style.display = 'none';
   }
   // Hero
-  if (cfg.hero_title) document.getElementById('hero-main-title').innerHTML = cfg.hero_title.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
-  if (cfg.hero_desc) document.getElementById('hero-description').textContent = cfg.hero_desc;
+  var hTitle = cfg.hero_title || heroSec.title;
+  var hDesc = cfg.hero_desc || heroSec.subtitle;
+  if (hTitle) document.getElementById('hero-main-title').innerHTML = hTitle.replace(/\{([^}]+)\}/g,'<span class="text-highlight">$1</span>');
+  if (hDesc) document.getElementById('hero-description').textContent = hDesc;
   // Steps
   if (cfg.steps_title) document.getElementById('steps-title').textContent = cfg.steps_title;
   if (cfg.step1_title) document.getElementById('step1-title').textContent = cfg.step1_title;

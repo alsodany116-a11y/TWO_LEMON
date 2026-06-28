@@ -675,23 +675,28 @@ function loadLocalConfig() {
 }
 
 function applyConfig(cfg) {
+  var heroSec = (cfg.sections || []).find(function(s){ return s && s.type === 'hero'; }) || {};
+
   // Settings tab
   document.getElementById('s-name').value       = cfg.site_name  || '';
   document.getElementById('s-price').value      = cfg.price      || 190;
-  document.getElementById('s-old-price').value  = cfg.old_price  || 380;
-  document.getElementById('s-hero-title').value = cfg.hero_title || '';
-  document.getElementById('s-hero-desc').value  = cfg.hero_desc  || '';
+  document.getElementById('s-old-price').value  = cfg.old_price  || heroSec.old_price || 380;
+  document.getElementById('s-hero-title').value = cfg.hero_title || heroSec.title || '';
+  document.getElementById('s-hero-desc').value  = cfg.hero_desc  || heroSec.subtitle || '';
   document.getElementById('s-promo-text').value = cfg.promo_text || '';
-  document.getElementById('s-promo-on').checked = cfg.promo_on !== false;
-  document.getElementById('s-whatsapp').value   = cfg.whatsapp   || '';
+  document.getElementById('s-promo-on').checked = cfg.promo_on !== false && cfg.promo_toggle !== false;
+  document.getElementById('s-whatsapp').value   = cfg.whatsapp   || cfg.support_whatsapp || '';
+  
   // Pixel tab
   document.getElementById('fb-pixel').value = cfg.pixel_id   || '';
   document.getElementById('fb-token').value = cfg.capi_token || '';
   document.getElementById('fb-test').value  = cfg.test_code  || '';
+  
   // Collections
   sections     = Array.isArray(cfg.sections)     ? cfg.sections     : [];
   testimonials = Array.isArray(cfg.testimonials) ? cfg.testimonials : [];
   faqs         = Array.isArray(cfg.faqs)         ? cfg.faqs         : [];
+  
   renderSections();
   renderTestimonials();
   renderFaqs();
@@ -712,17 +717,49 @@ async function saveSettings() {
     whatsapp:   document.getElementById('s-whatsapp').value
   };
 
-  if (localMode) {
-    lsSet('lp_sitename',   d.site_name);  lsSet('lp_price',    d.price);
-    lsSet('lp_oldprice',   d.old_price);  lsSet('lp_herotitle', d.hero_title);
-    lsSet('lp_herodesc',   d.hero_desc);  lsSet('lp_promo',     d.promo_text);
-    lsSet('lp_promoon',    d.promo_on?'1':'0'); lsSet('lp_whatsapp', d.whatsapp);
-    toast('✅ تم الحفظ محلياً'); return;
+  // Find or create hero section to save hero title, desc and old price dynamically
+  var heroSec = sections.find(function(s){ return s && s.type === 'hero'; });
+  if (!heroSec) {
+    heroSec = { id: 'hero', type: 'hero', tag: '🎁 هدية رومانسية غير متوقعة لشريك حياتك' };
+    sections.unshift(heroSec);
+  }
+  heroSec.title = d.hero_title;
+  heroSec.subtitle = d.hero_desc;
+  heroSec.old_price = d.old_price;
+
+  // Save to Local Storage first for fallback
+  lsSet('lp_sitename',   d.site_name);  
+  lsSet('lp_price',      d.price);
+  lsSet('lp_oldprice',   d.old_price);  
+  lsSet('lp_herotitle',  d.hero_title);
+  lsSet('lp_herodesc',   d.hero_desc);  
+  lsSet('lp_promo',      d.promo_text);
+  lsSet('lp_promoon',    d.promo_on?'1':'0'); 
+  lsSet('lp_whatsapp',   d.whatsapp);
+  lsSetJSON('lp_sections', sections);
+
+  if (localMode || !SB) {
+    toast('✅ تم الحفظ محلياً'); 
+    return;
   }
   try {
-    await SB.from('page_config').upsert(Object.assign({key:'default'}, d, {sections:sections, testimonials:testimonials, faqs:faqs}));
-    toast('✅ تم الحفظ في Supabase');
-  } catch(e) { toast('❌ خطأ: '+e.message); }
+    // Only send valid columns to Supabase database schema to prevent error
+    var dbData = {
+      key: 'default',
+      site_name: d.site_name,
+      price: d.price,
+      promo_text: d.promo_text,
+      promo_toggle: d.promo_on,
+      support_whatsapp: d.whatsapp,
+      sections: sections,
+      testimonials: testimonials,
+      faqs: faqs
+    };
+    await SB.from('page_config').upsert(dbData);
+    toast('✅ تم الحفظ بنجاح في قاعدة البيانات');
+  } catch(e) { 
+    toast('❌ خطأ في الحفظ: ' + e.message); 
+  }
 }
 
 /* ══════════════════════════════════════════
